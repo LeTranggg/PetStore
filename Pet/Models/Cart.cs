@@ -1,0 +1,25 @@
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace Pet.Models
+{
+    public class Cart
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        public decimal Price
+        {
+            get { return CartItems.Sum(ci => ci.Quantity * ci.Classification.Price); }
+        }
+
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+
+        [ValidateNever]
+        [NotMapped]
+        public ICollection<CartItem> CartItems { get; set; }
+    }
+}
