@@ -17,7 +17,7 @@ namespace Pet.Models
         public string FirstName { get; set; }
         [MaxLength(15, ErrorMessage = "Phone number cannot exceed 15 characters.")]
         public string PhoneNumber { get; set; }
-        [Required, DataType(DataType.Date)]
+        [Required]
         public DateTime DateOfBirth { get; set; }
         [Required]
         public string Address { get; set; }
