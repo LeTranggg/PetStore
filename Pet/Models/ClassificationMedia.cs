@@ -1,4 +1,4 @@
-﻿using Pet.Data;
+﻿using Pet.Datas;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

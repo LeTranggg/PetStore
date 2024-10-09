@@ -1,4 +1,4 @@
-﻿namespace Pet.Data
+﻿namespace Pet.Datas
 {
     public enum MediaType
     {
@@ -9,7 +9,8 @@
     public enum PaymentMethod
     {
         DigitalWallet,
-        DebitCreditCards,
+        DebitCard,
+        CreditCard,
         NetBanking
     }
 }

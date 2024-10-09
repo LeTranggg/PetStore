@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Pet.Models;
 
-namespace Pet.Data
+namespace Pet.Datas
 {
     public class ApplicationDbContext : IdentityDbContext<User, Role, int>
     {
