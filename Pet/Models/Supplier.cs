@@ -16,8 +16,7 @@ namespace Pet.Models
         public string PhoneNumber { get; set; }
         [Required]
         public string Address { get; set; }
-        [Required]
-        public string Photo { get; set; }
+        public string? Photo { get; set; }
 
         [ValidateNever]
         [NotMapped]

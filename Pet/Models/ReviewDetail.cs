@@ -11,7 +11,7 @@ namespace Pet.Models
         public byte Rating { get; set; }
         [MaxLength(500)]
         public string? Comment { get; set; }
-        public bool IsReport { get; set; }
+        public bool IsReport { get; set; } = false;
         public string? Reason { get; set; }
 
         public int ReviewId { get; set; }

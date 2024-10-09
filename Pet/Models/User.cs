@@ -23,7 +23,7 @@ namespace Pet.Models
         public string Address { get; set; }
         public decimal LoyaltyCoin { get; set; }
         public string? Photo { get; set; }
-        public bool IsBlock { get; set; }
+        public bool IsBlock { get; set; } = false;
         public string? Reason { get; set; }
 
         public int RoleId { get; set; }

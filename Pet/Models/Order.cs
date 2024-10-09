@@ -17,7 +17,6 @@ namespace Pet.Models
         public string Address { get; set; }
         [Required]
         public string Status { get; set; }
-        public string? Reason { get; set; }
         public bool IsPaid { get; set; }
 
         public int UserId { get; set; }
