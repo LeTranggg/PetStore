@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Pet.Data;
+using Pet.Datas;
 
 #nullable disable
 
@@ -515,7 +515,7 @@ namespace Pet.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "687d5c65-d8f5-4b2c-a04a-84de3992ea8c",
+                            ConcurrencyStamp = "0ec585be-3ae5-4926-a5d4-1d626786b3de",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -686,7 +686,7 @@ namespace Pet.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             Address = "Admin Address",
-                            ConcurrencyStamp = "c2aafc65-4e93-4921-a7cc-e5ea8c857370",
+                            ConcurrencyStamp = "553c385f-d843-4d3e-a5f8-370e07c4fdb0",
                             DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
@@ -697,11 +697,11 @@ namespace Pet.Migrations
                             LoyaltyCoin = 0m,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAENNoQUik1SvQkm7tirzj6YIcp242e+LW4FE5EWPvWGxb7eajQ7EJIoOIiLxsi4w1uQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEDxBJ3Ss16Sixp2/ZZ9PQs02NNSbjoF50el0Pc+KgRZ3xlensYQxBkcPZdou6+rCVA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = false,
                             RoleId = 1,
-                            SecurityStamp = "9f6a9d6d-cb29-44bc-a68f-b9d6b70a462a",
+                            SecurityStamp = "ae5df64b-508c-40ec-ab69-129a6460f881",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
