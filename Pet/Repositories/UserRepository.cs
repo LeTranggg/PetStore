@@ -18,7 +18,9 @@ namespace Pet.Repositories
 
         public async Task<User> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
+            return await _context.Users
+                .Include(u => u.Role)
+                .SingleOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<bool> ValidatePasswordAsync(User user, string password)
@@ -30,5 +32,6 @@ namespace Pet.Repositories
             //Failed: Mật khẩu không khớp.
             //SuccessRehashNeeded: Mật khẩu khớp nhưng cần phải hash lại để phù hợp với thuật toán hash mới.
         }
+
     }
 }

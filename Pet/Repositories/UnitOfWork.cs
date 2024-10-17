@@ -11,6 +11,7 @@ namespace Pet.Repositories
         private readonly IPasswordHasher<User> _passwordHasher;
 
         public IUserRepository UserRepository { get; private set; }
+        public IRoleRepository RoleRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
         {
@@ -18,6 +19,7 @@ namespace Pet.Repositories
             _passwordHasher = passwordHasher;
 
             UserRepository = new UserRepository(_context, _passwordHasher);
+            RoleRepository = new RoleRepository(_context);
         }
 
         public async Task<int> SaveAsync()

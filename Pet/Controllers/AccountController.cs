@@ -43,7 +43,12 @@ namespace Pet.Controllers
             // Generate JWT Token
             var token = GenerateJwtToken(user);
 
-            return Ok(new { Token = token });
+            // Trả về token và role của người dùng
+            return Ok(new
+            {
+                Token = token,
+                Role = user.Role?.Name ?? "No Role Assigned" // Nếu user không có role, trả về mặc định
+            });
         }
 
         // Logout is handled client-side by removing the token
@@ -56,11 +61,20 @@ namespace Pet.Controllers
             //_configuration["Jwt:Key"]: Lấy giá trị của khóa bảo mật token từ file cấu hình
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); //Để ký token và đảm bảo token hợp lệ và không bị chỉnh sửa
 
-            var claims = new[] //Là các thông tin về người dùng được nhúng vào token để xác định danh tính của người dùng khi gửi yêu cầu đến server
+            var claims = new List<Claim> //Là các thông tin về người dùng được nhúng vào token để xác định danh tính của người dùng khi gửi yêu cầu đến server
             {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
             };
+
+            if (!string.IsNullOrEmpty(user.Role?.Name))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, user.Role.Name));
+            }
+            else
+            {
+                Console.WriteLine("Role không hợp lệ hoặc chưa được gán.");
+            }
 
             var token = new JwtSecurityToken(
                 claims: claims,
