@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 
-function Login({ setAuth }) {
+function Login({ setAuth, setRole }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -15,17 +15,29 @@ function Login({ setAuth }) {
         password: password,
       });
 
-      // If login is successful, store the JWT token
+      // Kiểm tra dữ liệu từ API
+      console.log("Response data:", response.data);
+
+      // If login is successful, store the JWT token and role
       const token = response.data.token;
-      localStorage.setItem("token", token);
+      const role = response.data.role;
 
-      // Update authentication status
-      setAuth(true); // This will update the state in App.js
+      if (role) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
 
-      // Redirect or show a success message
-      console.log("Login successful");
+        setRole(role); // Set the role for App.js state
+        setAuth(true); // Set authentication status to true in App.js
+
+        // Redirect or show a success message
+        console.log("Login successful, role:", role);
+      } else {
+        console.error("Role is undefined or missing in the response");
+        setError("Unable to retrieve role information. Please contact support.");
+      }
     } catch (error) {
       setError("Login failed. Please check your credentials.");
+      console.error("Login error:", error);
     }
   };
 
