@@ -1,11 +1,17 @@
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 
 function Login({ setAuth, setRole }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+
+  const handleRegisterClick = () => {
+    navigate("/register"); // Điều hướng tới trang đăng ký
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent form from reloading the page
@@ -72,6 +78,7 @@ function Login({ setAuth, setRole }) {
           </>
         )}
       </form>
+      <button type="button" onClick={() => handleRegisterClick()}>Register</button>
       {error && <p>{error}</p>} {/* Hiển thị lỗi nếu có */}
     </div>
   );

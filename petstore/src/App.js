@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
+import Register from "./components/Register";
 import RoleIndex from "./components/RoleManagement/Index";
 import CreateRole from "./components/RoleManagement/Create";
 import UpdateRole from "./components/RoleManagement/Update";
@@ -90,6 +91,12 @@ function App() {
           <Route
             path="/login"
             element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} /> : <Navigate to="/" />}
+          />
+
+          {/* Trang đăng ký */}
+          <Route
+            path="/register"
+            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} /> : <Navigate to="/" />}
           />
 
           {/* Redirect tất cả các route khác về trang chủ */}
