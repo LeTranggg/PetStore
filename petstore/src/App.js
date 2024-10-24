@@ -12,6 +12,9 @@ import UpdateUser from "./components/UserManagement/Update";
 import CategoryIndex from "./components/CategoryManagement/Index";
 import CreateCategory from "./components/CategoryManagement/Create";
 import UpdateCategory from "./components/CategoryManagement/Update";
+import SupplierIndex from "./components/SupplierManagement/Index";
+import CreateSuppiler from "./components/SupplierManagement/Create";
+import UpdateSupplier from "./components/SupplierManagement/Update";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -49,6 +52,7 @@ function App() {
           <Link to="/roles">Go to Role Management</Link>
           <Link to="/users">Go to User Management</Link>
           <Link to="/categories">Go to Category Management</Link>
+          <Link to="/suppliers">Go to Supplier Management</Link>
         </div>
       ) : (
         <p>Welcome, {role ? role : "User"}!</p>
@@ -103,6 +107,20 @@ function App() {
           <Route
             path="/categories/update/:categoryId"
             element={isAuthenticated && role === "Admin" ? <UpdateCategory /> : <Navigate to="/categories" />}
+          />
+
+          {/* Trang quản lý suppliers */}
+          <Route
+            path="/suppliers"
+            element={isAuthenticated && role === "Admin" ? <SupplierIndex /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/suppliers/create"
+            element={isAuthenticated && role === "Admin" ? <CreateSuppiler /> : <Navigate to="/suppliers" />}
+          />
+          <Route
+            path="/suppliers/update/:supplierId"
+            element={isAuthenticated && role === "Admin" ? <UpdateSupplier /> : <Navigate to="/suppliers" />}
           />
 
           {/* Trang đăng nhập */}

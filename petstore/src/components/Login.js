@@ -75,10 +75,10 @@ function Login({ setAuth, setRole }) {
               />
             </div>
             <button type="submit">Login</button>
+            <button type="button" onClick={() => handleRegisterClick()}>Register</button>
           </>
         )}
       </form>
-      <button type="button" onClick={() => handleRegisterClick()}>Register</button>
       {error && <p>{error}</p>} {/* Hiển thị lỗi nếu có */}
     </div>
   );
