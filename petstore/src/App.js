@@ -9,6 +9,9 @@ import UpdateRole from "./components/RoleManagement/Update";
 import CreateUser from "./components/UserManagement/Create";
 import UserIndex from "./components/UserManagement/Index";
 import UpdateUser from "./components/UserManagement/Update";
+import CategoryIndex from "./components/CategoryManagement/Index";
+import CreateCategory from "./components/CategoryManagement/Create";
+import UpdateCategory from "./components/CategoryManagement/Update";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -45,6 +48,7 @@ function App() {
           <p>Hello, Admin!</p>
           <Link to="/roles">Go to Role Management</Link>
           <Link to="/users">Go to User Management</Link>
+          <Link to="/categories">Go to Category Management</Link>
         </div>
       ) : (
         <p>Welcome, {role ? role : "User"}!</p>
@@ -85,6 +89,20 @@ function App() {
           <Route
             path="/users/update/:userId"
             element={isAuthenticated && role === "Admin" ? <UpdateUser /> : <Navigate to="/users" />}
+          />
+
+          {/* Trang quản lý categories */}
+          <Route
+            path="/categories"
+            element={isAuthenticated && role === "Admin" ? <CategoryIndex /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/categories/create"
+            element={isAuthenticated && role === "Admin" ? <CreateCategory /> : <Navigate to="/categories" />}
+          />
+          <Route
+            path="/categories/update/:categoryId"
+            element={isAuthenticated && role === "Admin" ? <UpdateCategory /> : <Navigate to="/categories" />}
           />
 
           {/* Trang đăng nhập */}
