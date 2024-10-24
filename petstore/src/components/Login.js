@@ -5,9 +5,12 @@ function Login({ setAuth, setRole }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent form from reloading the page
+    setLoading(true); // Hiển thị trạng thái loading
+    setError(null); // Đặt lại lỗi nếu có
 
     try {
       const response = await axios.post("/api/account/login", {
@@ -15,29 +18,26 @@ function Login({ setAuth, setRole }) {
         password: password,
       });
 
-      // Kiểm tra dữ liệu từ API
-      console.log("Response data:", response.data);
-
-      // If login is successful, store the JWT token and role
-      const token = response.data.token;
-      const role = response.data.role;
+      // Nếu đăng nhập thành công, lưu token và role
+      const { token, role } = response.data;
 
       if (role) {
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
 
-        setRole(role); // Set the role for App.js state
-        setAuth(true); // Set authentication status to true in App.js
+        setRole(role); // Set role cho App.js
+        setAuth(true); // Set trạng thái authenticated thành true
 
-        // Redirect or show a success message
+        // Thông báo thành công
         console.log("Login successful, role:", role);
       } else {
-        console.error("Role is undefined or missing in the response");
-        setError("Unable to retrieve role information. Please contact support.");
+        throw new Error("Role is undefined");
       }
     } catch (error) {
       setError("Login failed. Please check your credentials.");
       console.error("Login error:", error);
+    } finally {
+      setLoading(false); // Tắt loading sau khi xử lý xong
     }
   };
 
@@ -45,27 +45,34 @@ function Login({ setAuth, setRole }) {
     <div>
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
+        {/* Hiển thị loading khi đang chờ response */}
+        {loading ? (
+          <p>Logging in...</p>
+        ) : (
+          <>
+            <div>
+              <label>Email:</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label>Password:</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit">Login</button>
+          </>
+        )}
       </form>
-      {error && <p>{error}</p>}
+      {error && <p>{error}</p>} {/* Hiển thị lỗi nếu có */}
     </div>
   );
 }

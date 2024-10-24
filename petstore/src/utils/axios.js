@@ -14,4 +14,17 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle response errors
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If the error response is 401, clear the token and redirect to login
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token'); // Xóa token khỏi localStorage
+      window.location.href = '/login'; // Chuyển hướng về trang đăng nhập
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;

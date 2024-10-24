@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/Axios";
+import { useNavigate, useParams } from "react-router-dom";
 
-function Update({ roleId, onUpdate }) {
+function Update({ onUpdate }) {
+  const navigate = useNavigate();
+  const { roleId } = useParams();
   const [name, setName] = useState("");
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -12,27 +14,34 @@ function Update({ roleId, onUpdate }) {
         const response = await axios.get(`/role/${roleId}`);
         setName(response.data.name);
       } catch (error) {
-        setError("Failed to fetch role.");
+        setError("Failed to fetch roles.");
       }
     };
     fetchRole();
   }, [roleId]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const updatedRole = { id: roleId, name };
-      await axios.put(`/role/${roleId}`, updatedRole);
-      setSuccess(true);
-      setError(null);
+  e.preventDefault();
+  try {
+    const updatedRole = {
+      name: name.trim(), // Loại bỏ khoảng trắng thừa
+      // Nếu backend yêu cầu thêm các trường khác, hãy bổ sung chúng ở đây
+    };
+    const response = await axios.put(`/role/${roleId}`, updatedRole);
+      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
+        setError(null);
+        if (onUpdate) {
+          onUpdate(updatedRole);
+        }
 
-      // Gọi hàm onUpdate để cập nhật role trong danh sách
-      if (onUpdate) {
-        onUpdate(updatedRole);
+        navigate("/roles", { state: { message: "Cập nhật role thành công!" } });
+      } else {
+        // Nếu mã trạng thái không phải 2xx, coi như thất bại
+        throw new Error("API failed but role might have been created.");
       }
     } catch (error) {
-      setError("Failed to update role.");
-      setSuccess(false);
+      console.error('Error:', error); // Log chi tiết lỗi
+      setError("Không thể cập nhật role! Vui lòng thử lại.");
     }
   };
 
@@ -51,8 +60,8 @@ function Update({ roleId, onUpdate }) {
         </div>
         <button type="submit">Update</button>
       </form>
-      {error && <p>{error}</p>}
-      {success && <p>Role updated successfully!</p>}
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
