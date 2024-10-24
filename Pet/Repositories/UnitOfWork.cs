@@ -13,6 +13,7 @@ namespace Pet.Repositories
         public IUserRepository UserRepository { get; private set; }
         public IRoleRepository RoleRepository { get; private set; }
         public ICategoryRepository CategoryRepository { get; private set; }
+        public ISupplierRepository SupplierRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
         {
@@ -22,6 +23,7 @@ namespace Pet.Repositories
             UserRepository = new UserRepository(_context, _passwordHasher);
             RoleRepository = new RoleRepository(_context);
             CategoryRepository = new CategoryRepository(_context);
+            SupplierRepository = new SupplierRepository(_context);
         }
 
         public async Task<int> SaveAsync()

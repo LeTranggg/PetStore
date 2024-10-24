@@ -5,6 +5,7 @@
         IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
         ICategoryRepository CategoryRepository { get; }
+        ISupplierRepository SupplierRepository { get; }
 
         Task<int> SaveAsync();
     }
