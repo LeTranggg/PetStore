@@ -4,6 +4,7 @@
     {
         IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
+        ICategoryRepository CategoryRepository { get; }
 
         Task<int> SaveAsync();
     }
