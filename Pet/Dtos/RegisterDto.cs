@@ -9,7 +9,7 @@ namespace Pet.Dtos
         [Required]
         public string Password { get; set; }
         [Required]
-        public string PasswordComfirmed { get; set; }
+        public string PasswordConfirmed { get; set; }
         [Required]
         public string FirstName { get; set; }
         [Required]

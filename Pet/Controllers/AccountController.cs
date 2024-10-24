@@ -22,10 +22,12 @@ namespace Pet.Controllers
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
-        public AccountController(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AccountController(IUnitOfWork unitOfWork, IConfiguration configuration, IPasswordHasher<User> passwordHasher, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _passwordHasher = passwordHasher;
+            _emailService = emailService;
         }
 
         [HttpPost("login")]
@@ -97,7 +99,7 @@ namespace Pet.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (registerDto.Password != registerDto.PasswordComfirmed)
+            if (registerDto.Password != registerDto.PasswordConfirmed)
                 return BadRequest("Mật khẩu không khớp.");
 
             var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(registerDto.Email);
@@ -131,8 +133,9 @@ namespace Pet.Controllers
 
             // Generate confirmation token and send email
             var token = user.SecurityStamp;
+            var backendUrl = _configuration["Backend:Url"]; // Add this to AppSettings.json
             var frontendUrl = _configuration["Frontend:Url"];
-            var confirmationUrl = $"{frontendUrl}/api/account/confirm-email?token={token}&email={user.Email}";
+            var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
 
             await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
                 $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
