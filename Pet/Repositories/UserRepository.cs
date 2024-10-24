@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Versioning;
 using Pet.Datas;
 using Pet.Models;
 using Pet.Repositories.IRepositories;
@@ -14,6 +15,19 @@ namespace Pet.Repositories
         {
             _context = context;
             _passwordHasher = passwordHasher;
+        }
+        public async Task<IEnumerable<User>> GetAllUsersWithRolesAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .ToListAsync();
+        }
+
+        public async Task<User> GetUserWithRoleByIdAsync(int id)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User> GetUserByEmailAsync(string email)

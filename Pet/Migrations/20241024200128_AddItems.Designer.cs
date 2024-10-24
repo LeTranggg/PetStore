@@ -12,7 +12,7 @@ using Pet.Datas;
 namespace Pet.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241010115130_AddItems")]
+    [Migration("20241024200128_AddItems")]
     partial class AddItems
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -517,7 +517,7 @@ namespace Pet.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "0ec585be-3ae5-4926-a5d4-1d626786b3de",
+                            ConcurrencyStamp = "9e55d3d5-40b8-4539-82e2-7a87ac018779",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -688,7 +688,7 @@ namespace Pet.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             Address = "Admin Address",
-                            ConcurrencyStamp = "553c385f-d843-4d3e-a5f8-370e07c4fdb0",
+                            ConcurrencyStamp = "6eb7b496-9af8-4488-a31f-472d688f2237",
                             DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
@@ -699,11 +699,11 @@ namespace Pet.Migrations
                             LoyaltyCoin = 0m,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEDxBJ3Ss16Sixp2/ZZ9PQs02NNSbjoF50el0Pc+KgRZ3xlensYQxBkcPZdou6+rCVA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEM66o4RxgUvlaTdGMIPWI8nbntOGusaDSrdQCp0vDj2jV3YUFQTpWZT2YJ6vzUpHNA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = false,
                             RoleId = 1,
-                            SecurityStamp = "ae5df64b-508c-40ec-ab69-129a6460f881",
+                            SecurityStamp = "b14bda1f-fc42-4afc-ac58-1e15301056f8",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });

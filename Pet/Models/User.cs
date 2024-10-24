@@ -31,13 +31,10 @@ namespace Pet.Models
         public Role Role { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<Cart> Carts { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<Order> Orders { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<Review> Reviews { get; set; }
     }
 }

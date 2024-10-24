@@ -13,7 +13,6 @@ namespace Pet.Models
         public string Name { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<User> Users { get; set; }
     }
 }

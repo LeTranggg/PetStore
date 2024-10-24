@@ -30,7 +30,6 @@ namespace Pet.Models
         public Shipping Shipping { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<OrderDetail> OrderDetails { get; set; }
 
         public void CalculateTotalPrice()

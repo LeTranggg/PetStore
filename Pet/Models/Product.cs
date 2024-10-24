@@ -23,10 +23,8 @@ namespace Pet.Models
         public Supplier Supplier { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<Classification> Classifications { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<Review> Reviews { get; set; }
     }
 }

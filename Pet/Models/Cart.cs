@@ -19,7 +19,6 @@ namespace Pet.Models
         public User User { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<CartItem> CartItems { get; set; }
     }
 }

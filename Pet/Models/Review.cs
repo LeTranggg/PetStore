@@ -19,10 +19,8 @@ namespace Pet.Models
         public User User { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<ReviewDetail> ReviewDetails { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<ReviewMedia> ReviewMedias { get; set; }
     }
 }

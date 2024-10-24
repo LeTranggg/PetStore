@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Protocol.Plugins;
 using Pet.Dtos;
 using Pet.Models;
 using Pet.Repositories.IRepositories;
+using Pet.Services.IServices;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +18,8 @@ namespace Pet.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
         public AccountController(IUnitOfWork unitOfWork, IConfiguration configuration)
@@ -38,6 +42,10 @@ namespace Pet.Controllers
             {
                 // Log khi mật khẩu không chính xác
                 return Unauthorized("Invalid email or password");
+            }
+            if (!user.EmailConfirmed)
+            {
+                return BadRequest("Vui lòng xác nhận email trước khi đăng nhập.");
             }
 
             // Generate JWT Token
@@ -83,5 +91,71 @@ namespace Pet.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (registerDto.Password != registerDto.PasswordComfirmed)
+                return BadRequest("Mật khẩu không khớp.");
+
+            var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(registerDto.Email);
+            if (existingUser != null) return BadRequest("Email đã được sử dụng.");
+
+            // Lấy role "Customer" từ database
+            var role = await _unitOfWork.RoleRepository.GetRoleByNameAsync("Customer");
+            if (role == null) return BadRequest("Role không hợp lệ.");
+
+            var user = new User
+            {
+                Email = registerDto.Email,
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                UserName = registerDto.Email.Split('@')[0].ToLower(),
+                NormalizedUserName = registerDto.Email.Split('@')[0].ToUpper(),
+                NormalizedEmail = registerDto.Email.ToUpper(),
+                Address = registerDto.Address,
+                PhoneNumber = registerDto.PhoneNumber,
+                DateOfBirth = registerDto.DateOfBirth,
+                RoleId = role.Id,
+                EmailConfirmed = false,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                IsBlock = false
+            };
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, registerDto.Password);
+
+            await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            // Generate confirmation token and send email
+            var token = user.SecurityStamp;
+            var frontendUrl = _configuration["Frontend:Url"];
+            var confirmationUrl = $"{frontendUrl}/api/account/confirm-email?token={token}&email={user.Email}";
+
+            await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
+                $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
+
+            return Ok("Đăng ký tài khoản thành công! Vui lòng kiểm tra email để xác nhận.");
+        }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token, [FromQuery] string email)
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user == null) return NotFound("Người dùng không tồn tại.");
+            if (user.EmailConfirmed) return BadRequest("Email đã được xác nhận trước đó.");
+
+            if (token != user.SecurityStamp)
+                return BadRequest("Token không hợp lệ.");
+
+            user.EmailConfirmed = true;
+            _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Email đã được xác nhận thành công!");
+        }
+
     }
 }

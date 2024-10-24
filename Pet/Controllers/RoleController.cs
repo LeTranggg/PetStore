@@ -22,7 +22,7 @@ namespace Pet.Controllers
         [HttpGet]
         public async Task<IActionResult> GetRoles()
         {
-            var roles = await _unitOfWork.RoleRepository.GetAllAsync();
+            var roles = await _unitOfWork.RoleRepository.GetAllRolesWithUsersAsync();
             return Ok(roles);
         }
 
@@ -48,7 +48,6 @@ namespace Pet.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] Role role)
         {
-            if (id != role.Id) return BadRequest();
             if (!ModelState.IsValid) return BadRequest(ModelState);
             // Tìm role từ database
             var existingRole = await _unitOfWork.RoleRepository.GetByIdAsync(id);

@@ -30,16 +30,12 @@ namespace Pet.Models
         public Product Product { get; set; }
 
         [ValidateNever]
-        [NotMapped]
         public ICollection<OrderDetail> OrderDetails { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<ReviewDetail> ReviewDetails { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<CartItem> CartItems { get; set; }
         [ValidateNever]
-        [NotMapped]
         public ICollection<ClassificationMedia> ClassificationMedias { get; set; }
     }
 }

@@ -502,12 +502,12 @@ namespace Pet.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { 1, "0ec585be-3ae5-4926-a5d4-1d626786b3de", "Admin", "ADMIN" });
+                values: new object[] { 1, "9e55d3d5-40b8-4539-82e2-7a87ac018779", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "IsBlock", "LastName", "LockoutEnabled", "LockoutEnd", "LoyaltyCoin", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Photo", "Reason", "RoleId", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { 1, 0, "Admin Address", "553c385f-d843-4d3e-a5f8-370e07c4fdb0", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEDxBJ3Ss16Sixp2/ZZ9PQs02NNSbjoF50el0Pc+KgRZ3xlensYQxBkcPZdou6+rCVA==", "1234567890", false, null, null, 1, "ae5df64b-508c-40ec-ab69-129a6460f881", false, "admin" });
+                values: new object[] { 1, 0, "Admin Address", "6eb7b496-9af8-4488-a31f-472d688f2237", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEM66o4RxgUvlaTdGMIPWI8nbntOGusaDSrdQCp0vDj2jV3YUFQTpWZT2YJ6vzUpHNA==", "1234567890", false, null, null, 1, "b14bda1f-fc42-4afc-ac58-1e15301056f8", false, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
