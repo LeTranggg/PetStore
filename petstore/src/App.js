@@ -15,6 +15,9 @@ import UpdateCategory from "./components/CategoryManagement/Update";
 import SupplierIndex from "./components/SupplierManagement/Index";
 import CreateSuppiler from "./components/SupplierManagement/Create";
 import UpdateSupplier from "./components/SupplierManagement/Update";
+import ProductIndex from "./components/ProductManagement/Index";
+import CreateProduct from "./components/ProductManagement/Create";
+import UpdateProduct from "./components/ProductManagement/Update";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -49,10 +52,21 @@ function App() {
       {role === "Admin" ? (
         <div>
           <p>Hello, Admin!</p>
-          <Link to="/roles">Go to Role Management</Link>
-          <Link to="/users">Go to User Management</Link>
-          <Link to="/categories">Go to Category Management</Link>
-          <Link to="/suppliers">Go to Supplier Management</Link>
+          <div>
+            <Link to="/roles">Go to Role Management</Link>
+          </div>
+          <div>
+            <Link to="/users">Go to User Management</Link>
+          </div>
+          <div>
+            <Link to="/categories">Go to Category Management</Link>
+          </div>
+          <div>
+            <Link to="/suppliers">Go to Supplier Management</Link>
+          </div>
+          <div>
+            <Link to="/products">Go to Product Management</Link>
+          </div>
         </div>
       ) : (
         <p>Welcome, {role ? role : "User"}!</p>
@@ -121,6 +135,20 @@ function App() {
           <Route
             path="/suppliers/update/:supplierId"
             element={isAuthenticated && role === "Admin" ? <UpdateSupplier /> : <Navigate to="/suppliers" />}
+          />
+
+          {/* Trang quản lý products */}
+          <Route
+            path="/products"
+            element={isAuthenticated && role === "Admin" ? <ProductIndex /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/products/create"
+            element={isAuthenticated && role === "Admin" ? <CreateProduct /> : <Navigate to="/products" />}
+          />
+          <Route
+            path="/products/update/:productId"
+            element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" />}
           />
 
           {/* Trang đăng nhập */}
