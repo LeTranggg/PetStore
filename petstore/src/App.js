@@ -18,6 +18,9 @@ import UpdateSupplier from "./components/SupplierManagement/Update";
 import ProductIndex from "./components/ProductManagement/Index";
 import CreateProduct from "./components/ProductManagement/Create";
 import UpdateProduct from "./components/ProductManagement/Update";
+import ClassificationIndex from "./components/ClassificationManagement/Index";
+import CreateClassification from "./components/ClassificationManagement/Create";
+import UpdateClassification from "./components/ClassificationManagement/Update";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -66,6 +69,9 @@ function App() {
           </div>
           <div>
             <Link to="/products">Go to Product Management</Link>
+          </div>
+          <div>
+            <Link to="/classifications">Go to Classification Management</Link>
           </div>
         </div>
       ) : (
@@ -149,6 +155,20 @@ function App() {
           <Route
             path="/products/update/:productId"
             element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" />}
+          />
+
+          {/* Trang quản lý classifications */}
+          <Route
+            path="/classifications"
+            element={isAuthenticated && role === "Admin" ? <ClassificationIndex /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/classifications/create"
+            element={isAuthenticated && role === "Admin" ? <CreateClassification /> : <Navigate to="/classifications" />}
+          />
+          <Route
+            path="/classifications/update/:classificationId"
+            element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" />}
           />
 
           {/* Trang đăng nhập */}
