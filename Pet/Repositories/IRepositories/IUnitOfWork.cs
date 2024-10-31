@@ -8,6 +8,7 @@
         ISupplierRepository SupplierRepository { get; }
         IProductRepository ProductRepository { get; }
         IClassificationRepository ClassificationRepository { get; }
+        IShippingRepository ShippingRepository { get; }
 
         Task<int> SaveAsync();
     }

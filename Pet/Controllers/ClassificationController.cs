@@ -8,7 +8,7 @@ using System.Data;
 
 namespace Pet.Controllers
 {
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ClassificationController : ControllerBase
