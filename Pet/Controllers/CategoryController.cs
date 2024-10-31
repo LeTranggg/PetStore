@@ -63,10 +63,10 @@ namespace Pet.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var Category = await _unitOfWork.CategoryRepository.GetByIdAsync(id);
-            if (Category == null) return NotFound();
+            var category = await _unitOfWork.CategoryRepository.GetByIdAsync(id);
+            if (category == null) return NotFound();
 
-            _unitOfWork.CategoryRepository.DeleteAsync(Category);
+            _unitOfWork.CategoryRepository.DeleteAsync(category);
             await _unitOfWork.SaveAsync();
 
             return Ok();

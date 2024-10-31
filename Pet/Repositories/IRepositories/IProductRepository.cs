@@ -6,5 +6,7 @@ namespace Pet.Repositories.IRepositories
     {
         Task<IEnumerable<Product>> GetAllProductsWithCategoriesSuppliersAsync();
         Task<Product> GetProductWithCategorySupplierByIdAsync(int id);
+        Task<Product> GetProductByNameAsync(string productName); 
+        Task<IEnumerable<Product>> GetAllProductsWithClassificationsAsync();
     }
 }

@@ -30,5 +30,17 @@ namespace Pet.Repositories
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<Product> GetProductByNameAsync(string productName)
+        {
+            return await _context.Products.SingleOrDefaultAsync(r => r.Name == productName);
+        }
+
+        public async Task<IEnumerable<Product>> GetAllProductsWithClassificationsAsync()
+        {
+            return await _context.Products
+                .Include(r => r.Classifications) // Nạp danh sách Products kèm với Category
+                .ToListAsync();
+        }
+
     }
 }

@@ -6,18 +6,16 @@ using Pet.Repositories.IRepositories;
 
 namespace Pet.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _configuration;
 
-        public ProductController(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public ProductController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _configuration = configuration;
         }
 
         [HttpGet]
@@ -64,25 +62,25 @@ namespace Pet.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updatedProductDto)
         {
-            var Product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-            if (Product == null) return NotFound("Không tìm thấy người dùng.");
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+            if (product == null) return NotFound("Không tìm thấy người dùng.");
 
             // Only update fields if they are provided in the request
             if (!string.IsNullOrEmpty(updatedProductDto.Name))
-                Product.Name = updatedProductDto.Name;
+                product.Name = updatedProductDto.Name;
 
             if (updatedProductDto.Description != null)
-                Product.Description = updatedProductDto.Description;
+                product.Description = updatedProductDto.Description;
 
             if (updatedProductDto.Price.HasValue)
-                Product.Price = updatedProductDto.Price.Value;
+                product.Price = updatedProductDto.Price.Value;
 
             // Check if Category is provided
             if (!string.IsNullOrEmpty(updatedProductDto.Category))
             {
                 var category = await _unitOfWork.CategoryRepository.GetCategoryByNameAsync(updatedProductDto.Category);
                 if (category == null) return BadRequest("Category không hợp lệ.");
-                Product.CategoryId = category.Id;
+                product.CategoryId = category.Id;
             }
 
             // Check if Supplier is provided
@@ -90,10 +88,10 @@ namespace Pet.Controllers
             {
                 var supplier = await _unitOfWork.SupplierRepository.GetSupplierByNameAsync(updatedProductDto.Supplier);
                 if (supplier == null) return BadRequest("Supplier không hợp lệ.");
-                Product.SupplierId = supplier.Id;
+                product.SupplierId = supplier.Id;
             }
 
-            _unitOfWork.ProductRepository.UpdateAsync(Product);
+            _unitOfWork.ProductRepository.UpdateAsync(product);
             await _unitOfWork.SaveAsync();
 
             return Ok("Cập nhật product thành công.");
@@ -102,10 +100,10 @@ namespace Pet.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var Product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-            if (Product == null) return NotFound("Không tìm thấy người dùng.");
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+            if (product == null) return NotFound("Không tìm thấy người dùng.");
 
-            _unitOfWork.ProductRepository.DeleteAsync(Product);
+            _unitOfWork.ProductRepository.DeleteAsync(product);
             await _unitOfWork.SaveAsync();
 
             return Ok("Xóa tài khoản thành công.");

@@ -7,6 +7,7 @@
         ICategoryRepository CategoryRepository { get; }
         ISupplierRepository SupplierRepository { get; }
         IProductRepository ProductRepository { get; }
+        IClassificationRepository ClassificationRepository { get; }
 
         Task<int> SaveAsync();
     }

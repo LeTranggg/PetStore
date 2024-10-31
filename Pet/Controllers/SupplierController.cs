@@ -81,10 +81,10 @@ namespace Pet.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
-            var Supplier = await _unitOfWork.SupplierRepository.GetByIdAsync(id);
-            if (Supplier == null) return NotFound();
+            var supplier = await _unitOfWork.SupplierRepository.GetByIdAsync(id);
+            if (supplier == null) return NotFound();
 
-            _unitOfWork.SupplierRepository.DeleteAsync(Supplier);
+            _unitOfWork.SupplierRepository.DeleteAsync(supplier);
             await _unitOfWork.SaveAsync();
 
             return Ok();
