@@ -1,26 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import CreateCategory from "./components/CategoryManagement/Create";
+import CategoryIndex from "./components/CategoryManagement/Index";
+import UpdateCategory from "./components/CategoryManagement/Update";
+import CreateClassification from "./components/ClassificationManagement/Create";
+import ClassificationIndex from "./components/ClassificationManagement/Index";
+import UpdateClassification from "./components/ClassificationManagement/Update";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
+import CreateProduct from "./components/ProductManagement/Create";
+import ProductIndex from "./components/ProductManagement/Index";
+import UpdateProduct from "./components/ProductManagement/Update";
 import Register from "./components/Register";
-import RoleIndex from "./components/RoleManagement/Index";
 import CreateRole from "./components/RoleManagement/Create";
+import RoleIndex from "./components/RoleManagement/Index";
 import UpdateRole from "./components/RoleManagement/Update";
+import CreateShipping from "./components/ShippingManagement/Create";
+import ShippingIndex from "./components/ShippingManagement/Index";
+import UpdateShipping from "./components/ShippingManagement/Update";
+import CreateSuppiler from "./components/SupplierManagement/Create";
+import SupplierIndex from "./components/SupplierManagement/Index";
+import UpdateSupplier from "./components/SupplierManagement/Update";
 import CreateUser from "./components/UserManagement/Create";
 import UserIndex from "./components/UserManagement/Index";
 import UpdateUser from "./components/UserManagement/Update";
-import CategoryIndex from "./components/CategoryManagement/Index";
-import CreateCategory from "./components/CategoryManagement/Create";
-import UpdateCategory from "./components/CategoryManagement/Update";
-import SupplierIndex from "./components/SupplierManagement/Index";
-import CreateSuppiler from "./components/SupplierManagement/Create";
-import UpdateSupplier from "./components/SupplierManagement/Update";
-import ProductIndex from "./components/ProductManagement/Index";
-import CreateProduct from "./components/ProductManagement/Create";
-import UpdateProduct from "./components/ProductManagement/Update";
-import ClassificationIndex from "./components/ClassificationManagement/Index";
-import CreateClassification from "./components/ClassificationManagement/Create";
-import UpdateClassification from "./components/ClassificationManagement/Update";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -72,6 +75,9 @@ function App() {
           </div>
           <div>
             <Link to="/classifications">Go to Classification Management</Link>
+          </div>
+          <div>
+            <Link to="/shippings">Go to Shipping Management</Link>
           </div>
         </div>
       ) : (
@@ -169,6 +175,20 @@ function App() {
           <Route
             path="/classifications/update/:classificationId"
             element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" />}
+          />
+
+          {/* Trang quản lý classifications */}
+          <Route
+            path="/shippings"
+            element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/shippings/create"
+            element={isAuthenticated && role === "Admin" ? <CreateShipping /> : <Navigate to="/shippings" />}
+          />
+          <Route
+            path="/shippings/update/:shippingId"
+            element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" />}
           />
 
           {/* Trang đăng nhập */}
