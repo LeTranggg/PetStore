@@ -26,6 +26,9 @@ import UpdateSupplier from "./components/SupplierManagement/Update";
 import CreateUser from "./components/UserManagement/Create";
 import UserIndex from "./components/UserManagement/Index";
 import UpdateUser from "./components/UserManagement/Update";
+import Admin from './screens/Admin';
+import Customer from './screens/Customer';
+import Guest from './screens/Guest';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -77,179 +80,191 @@ function App() {
       localStorage.removeItem('user');
       localStorage.removeItem('role');
     }
+
+    // Check for token expiration
+    const interval = setInterval(() => {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        setIsAuthenticated(false);
+        setRole(null);
+        setUser(null);
+      }
+    }, 10000); // check every 10 seconds
+
+    return () => clearInterval(interval);
+
   }, []);
 
-  const Home = () => (
-    <div>
-      <h2>Welcome!</h2>
-      <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
-      {user && (
-        <>
-          <div>User ID: {user.id}</div>
-          <div>User Role: {user.role}</div>
-          <Link to={`/profile/${user.id}`}>Go to Your Profile</Link>
-        </>
-      )}
-      {user && user.role === "Admin" ? (
-        <div>
-          <p>Hello, Admin!</p>
-          <div>
-            <Link to="/roles">Go to Role Management</Link>
-          </div>
-          <div>
-            <Link to="/users">Go to User Management</Link>
-          </div>
-          <div>
-            <Link to="/categories">Go to Category Management</Link>
-          </div>
-          <div>
-            <Link to="/suppliers">Go to Supplier Management</Link>
-          </div>
-          <div>
-            <Link to="/products">Go to Product Management</Link>
-          </div>
-          <div>
-            <Link to="/classifications">Go to Classification Management</Link>
-          </div>
-          <div>
-            <Link to="/shippings">Go to Shipping Management</Link>
-          </div>
-        </div>
-      ) : (
-        <p>Welcome, {user ? user.role : "Guest"}!</p>
-      )}
-    </div>
-  );
+  const Home = () => {
+    if (!isAuthenticated) {
+      return <Navigate to="/guest" replace/>;
+    }
+
+    // Nếu đã đăng nhập, điều hướng theo role
+    switch (user?.role) {
+      case "Admin":
+        return <Navigate to="/admin" replace/>;
+      case "Customer":
+        return <Navigate to="/customer" replace/>;
+      default:
+        return <Navigate to="/guest" replace/>;
+    }
+  };
 
   return (
     <Router>
       <div className="App">
         <Routes>
           {/* Trang chủ */}
-          <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/guest" element={!isAuthenticated ? <Guest /> : <Navigate to="/" replace />} />
+
+          {/* Trang dành cho user đã đăng nhập */}
+          <Route path="/admin" element={
+            isAuthenticated && role === "Admin" ?
+            <div>
+              <Admin user={user} />
+              <div>
+                <Link to={`/profile/${user?.id}`}>Profile</Link>
+                <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
+              </div>
+            </div> :
+            <Navigate to="/" replace/>
+          } />
+          <Route path="/customer" element={
+            isAuthenticated && role === "Customer" ?
+            <div>
+              <Customer user={user} />
+              <div>
+                <Link to={`/profile/${user?.id}`}>Profile</Link>
+                <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
+              </div>
+            </div> :
+            <Navigate to="/" replace/>
+          } />
 
           {/* Trang quản lý roles */}
           <Route
             path="/roles"
-            element={isAuthenticated && role === "Admin" ? <RoleIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <RoleIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/roles/create"
-            element={isAuthenticated && role === "Admin" ? <CreateRole /> : <Navigate to="/roles" />}
+            element={isAuthenticated && role === "Admin" ? <CreateRole /> : <Navigate to="/roles" replace/>}
           />
           <Route
             path="/roles/update/:roleId"
-            element={isAuthenticated && role === "Admin" ? <UpdateRole /> : <Navigate to="/roles" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateRole /> : <Navigate to="/roles" replace/>}
           />
 
           {/* Trang quản lý users */}
           <Route
             path="/users"
-            element={isAuthenticated && role === "Admin" ? <UserIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <UserIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/users/create"
-            element={isAuthenticated && role === "Admin" ? <CreateUser /> : <Navigate to="/users" />}
+            element={isAuthenticated && role === "Admin" ? <CreateUser /> : <Navigate to="/users" replace/>}
           />
           <Route
             path="/users/update/:userId"
-            element={isAuthenticated && role === "Admin" ? <UpdateUser /> : <Navigate to="/users" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateUser /> : <Navigate to="/users" replace/>}
           />
 
           {/* Trang quản lý categories */}
           <Route
             path="/categories"
-            element={isAuthenticated && role === "Admin" ? <CategoryIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <CategoryIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/categories/create"
-            element={isAuthenticated && role === "Admin" ? <CreateCategory /> : <Navigate to="/categories" />}
+            element={isAuthenticated && role === "Admin" ? <CreateCategory /> : <Navigate to="/categories" replace/>}
           />
           <Route
             path="/categories/update/:categoryId"
-            element={isAuthenticated && role === "Admin" ? <UpdateCategory /> : <Navigate to="/categories" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateCategory /> : <Navigate to="/categories" replace/>}
           />
 
           {/* Trang quản lý suppliers */}
           <Route
             path="/suppliers"
-            element={isAuthenticated && role === "Admin" ? <SupplierIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <SupplierIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/suppliers/create"
-            element={isAuthenticated && role === "Admin" ? <CreateSuppiler /> : <Navigate to="/suppliers" />}
+            element={isAuthenticated && role === "Admin" ? <CreateSuppiler /> : <Navigate to="/suppliers" replace/>}
           />
           <Route
             path="/suppliers/update/:supplierId"
-            element={isAuthenticated && role === "Admin" ? <UpdateSupplier /> : <Navigate to="/suppliers" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateSupplier /> : <Navigate to="/suppliers" replace/>}
           />
 
           {/* Trang quản lý products */}
           <Route
             path="/products"
-            element={isAuthenticated && role === "Admin" ? <ProductIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <ProductIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/products/create"
-            element={isAuthenticated && role === "Admin" ? <CreateProduct /> : <Navigate to="/products" />}
+            element={isAuthenticated && role === "Admin" ? <CreateProduct /> : <Navigate to="/products" replace/>}
           />
           <Route
             path="/products/update/:productId"
-            element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" replace/>}
           />
 
           {/* Trang quản lý classifications */}
           <Route
             path="/classifications"
-            element={isAuthenticated && role === "Admin" ? <ClassificationIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <ClassificationIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/classifications/create"
-            element={isAuthenticated && role === "Admin" ? <CreateClassification /> : <Navigate to="/classifications" />}
+            element={isAuthenticated && role === "Admin" ? <CreateClassification /> : <Navigate to="/classifications" replace/>}
           />
           <Route
             path="/classifications/update/:classificationId"
-            element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" replace/>}
           />
 
           {/* Trang quản lý classifications */}
           <Route
             path="/shippings"
-            element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" />}
+            element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" replace/>}
           />
           <Route
             path="/shippings/create"
-            element={isAuthenticated && role === "Admin" ? <CreateShipping /> : <Navigate to="/shippings" />}
+            element={isAuthenticated && role === "Admin" ? <CreateShipping /> : <Navigate to="/shippings" replace/>}
           />
           <Route
             path="/shippings/update/:shippingId"
-            element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" />}
+            element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" replace/>}
           />
 
           {/* Trang profile */}
           <Route
             path="/profile/:userId"
-            element={isAuthenticated ? <Profile user={user} /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Profile user={user} /> : <Navigate to="/profile" replace/>}
           />
           <Route
             path="/profile/changePass/:userId"
-            element={isAuthenticated ? <ChangePass user={user} /> : <Navigate to="/profile" />}
+            element={isAuthenticated ? <ChangePass user={user} /> : <Navigate to="/profile" replace/>}
           />
 
           {/* Trang đăng nhập */}
           <Route
             path="/login"
-            element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
           />
 
           {/* Trang đăng ký */}
           <Route
             path="/register"
-            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
           />
 
           {/* Redirect tất cả các route khác về trang chủ */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/" replace/>} />
         </Routes>
       </div>
     </Router>

@@ -71,7 +71,7 @@ function Profile({ user }) {
       localStorage.setItem('user', JSON.stringify(updatedUser));
       alert("Cập nhật profile thành công!");
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      alert("Không thể cập nhật profile! Vui lòng thử lại. ");
     }
   };
 
