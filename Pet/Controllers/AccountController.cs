@@ -57,12 +57,15 @@ namespace Pet.Controllers
             return Ok(new
             {
                 Token = token,
-                Role = user.Role?.Name ?? "No Role Assigned" // Nếu user không có role, trả về mặc định
+                user = new
+                {
+                    Role = user.Role?.Name ?? "No Role Assigned", // Nếu user không có role, trả về mặc định
+                    id = user.Id,
+                    email = user.Email
+                    // Thêm các thông tin user khác nếu cần
+                }
             });
         }
-
-        // Logout is handled client-side by removing the token
-        // but token invalidation could be handled by adjusting the JWT expiration time
 
         private string GenerateJwtToken(User user)
         {
@@ -159,6 +162,86 @@ namespace Pet.Controllers
 
             return Ok("Email đã được xác nhận thành công!");
         }
+
+        [HttpGet("profile/{id}")]
+        public async Task<IActionResult> GetProfile(int id)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null) return NotFound("User not found.");
+
+            return Ok(new
+            {
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.PhoneNumber,
+                user.Address,
+                user.DateOfBirth
+            });
+        }
+
+        [HttpPut("profile/{id}")]
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileDto updateProfileDto)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null) return NotFound("User not found.");
+
+            if (!string.IsNullOrEmpty(updateProfileDto.Email) && user.Email != updateProfileDto.Email)
+            {
+                user.Email = updateProfileDto.Email;
+                user.EmailConfirmed = false;
+
+                // Send confirmation email
+                var token = user.SecurityStamp;
+                var backendUrl = _configuration["Backend:Url"];
+                var frontendUrl = _configuration["Frontend:Url"];
+                var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
+
+                await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
+                    $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
+            }
+
+            if (!string.IsNullOrEmpty(updateProfileDto.FirstName))
+                user.FirstName = updateProfileDto.FirstName;
+
+            if (!string.IsNullOrEmpty(updateProfileDto.LastName))
+                user.LastName = updateProfileDto.LastName;
+
+            if (!string.IsNullOrEmpty(updateProfileDto.PhoneNumber))
+                user.PhoneNumber = updateProfileDto.PhoneNumber;
+
+            if (updateProfileDto.DateOfBirth.HasValue)
+                user.DateOfBirth = updateProfileDto.DateOfBirth.Value;
+
+            if (!string.IsNullOrEmpty(updateProfileDto.Address))
+                user.Address = updateProfileDto.Address;
+
+            _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Profile updated successfully.");
+        }
+
+        [HttpPut("change-password/{id}")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto changePasswordDto)
+        {
+            if (changePasswordDto.NewPassword != changePasswordDto.ConfirmNewPassword)
+                return BadRequest("New passwords do not match.");
+
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null) return NotFound("User not found.");
+
+            var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, changePasswordDto.CurrentPassword);
+            if (passwordVerificationResult == PasswordVerificationResult.Failed)
+                return BadRequest("Current password is incorrect.");
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, changePasswordDto.NewPassword);
+            _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Password changed successfully.");
+        }
+
 
     }
 }
