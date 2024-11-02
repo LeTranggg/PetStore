@@ -20,12 +20,12 @@ function Create({ onCreate }) {
         }
 
         // Chuyển hướng ngay lập tức và truyền message tới trang Index
-        navigate("/categories", { state: { message: "Tạo category thành công!" } });
+        navigate("/categories", { state: { message: "Tạo category thành công!", type: 'success' } });
       } else {
         throw new Error("API failed but category might have been created.");
       }
     } catch (error) {
-      setError("Không thể tạo category! Vui lòng thử lại.");
+      navigate("/categories", { state: { message: "Không thể tạo category! Vui lòng thử lại.", type: 'danger' } });
     }
   };
 

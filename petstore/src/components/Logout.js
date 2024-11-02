@@ -1,9 +1,15 @@
 import React from 'react';
 
-const Logout = ({ setAuth }) => {
+const Logout = ({ setAuth, setRole, setUser }) => {
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Xóa token khỏi localStorage
-    setAuth(false); // Cập nhật trạng thái đăng xuất
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+
+    // Reset tất cả states về null hoặc giá trị mặc định
+    setAuth(false);
+    setRole(null);
+    setUser(null);
   };
 
   return (

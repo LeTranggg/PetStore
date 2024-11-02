@@ -92,7 +92,7 @@ function Update({ onUpdate }) {
           onUpdate(updatedData);
         }
 
-        navigate("/users", { state: { message: "Cập nhật tài khoản thành công!" }});
+        navigate("/users", { state: { message: "Cập nhật tài khoản thành công!", type: 'success' }});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -104,8 +104,7 @@ function Update({ onUpdate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to update user: ${errorMessage}`);
       } else {
-        setError("Failed to update user.");
-        navigate("/users", { state: { message: "Không thể cập nhật tài khoản! Vui lòng thử lại." }});
+        navigate("/users", { state: { message: "Không thể cập nhật tài khoản! Vui lòng thử lại.", type: 'danger' }});
       }
     }
 

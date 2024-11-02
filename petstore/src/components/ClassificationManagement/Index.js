@@ -98,7 +98,12 @@ function Index() {
 
       <ToastContainer position="top-end" className="p-3">
         {message && (
-          <Toast bg="success" onClose={() => setMessage(null)} show={!!message} delay={3000} autohide>
+          <Toast
+            bg={location.state?.type === 'success' ? 'success' : 'danger'}
+            onClose={() => setMessage(null)}
+            show={!!message}
+            delay={3000}
+            autohide>
             <Toast.Body>{message}</Toast.Body>
           </Toast>
         )}

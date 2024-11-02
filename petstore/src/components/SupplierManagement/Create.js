@@ -34,7 +34,7 @@ function Create({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/suppliers", { state: { message: "Tạo supplier thành công!"}});
+        navigate("/suppliers", { state: { message: "Tạo supplier thành công!", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -47,8 +47,7 @@ function Create({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create supplier: ${errorMessage}`);
       } else {
-        setError("Failed to create supplier.");
-        navigate("/suppliers", { state: { message: "Không thể tạo supplier! Vui lòng thử lại." }});
+        navigate("/suppliers", { state: { message: "Không thể tạo supplier! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };

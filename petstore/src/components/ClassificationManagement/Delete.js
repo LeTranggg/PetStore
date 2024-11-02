@@ -13,11 +13,10 @@ function Delete({ classificationId, onDelete }) {
       setSuccess(true);
       setError(null);
       onDelete(classificationId);  // Gọi callback để xóa classification khỏi danh sách
-      navigate("/classifications", { state: { message: "Xoá classification thành công!" }});
+      navigate("/classifications", { state: { message: "Xoá classification thành công!", type: 'success' }});
     } catch (error) {
-      setError("Failed to delete classification.");
       setSuccess(false);
-      navigate("/classifications", { state: { message: "Không thể xoá classification! Vui lòng thử lại." }});
+      navigate("/classifications", { state: { message: "Không thể xoá classification! Vui lòng thử lại.", type: 'danger' }});
     }
   };
 

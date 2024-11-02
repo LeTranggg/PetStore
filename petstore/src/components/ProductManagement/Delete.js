@@ -13,11 +13,10 @@ function Delete({ productId, onDelete }) {
       setSuccess(true);
       setError(null);
       onDelete(productId);  // Gọi callback để xóa product khỏi danh sách
-      navigate("/products", { state: { message: "Xoá product thành công!" }});
+      navigate("/products", { state: { message: "Xoá product thành công!", type: 'success' }});
     } catch (error) {
-      setError("Failed to delete product.");
       setSuccess(false);
-      navigate("/products", { state: { message: "Không thể xoá product! Vui lòng thử lại." }});
+      navigate("/products", { state: { message: "Không thể xoá product! Vui lòng thử lại.", type: 'danger' }});
     }
   };
 

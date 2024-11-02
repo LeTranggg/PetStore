@@ -53,7 +53,7 @@ function Create({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/classifications", { state: { message: "Tạo classification thành công!"}});
+        navigate("/classifications", { state: { message: "Tạo classification thành công!", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -66,8 +66,7 @@ function Create({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create classification: ${errorMessage}`);
       } else {
-        setError("Failed to create classification.");
-        navigate("/classifications", { state: { message: "Không thể tạo classification! Vui lòng thử lại." }});
+        navigate("/classifications", { state: { message: "Không thể tạo classification! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };

@@ -98,7 +98,7 @@ function Update({ onUpdate }) {
           onUpdate(updatedData);
         }
 
-        navigate("/classifications", { state: { message: "Cập nhật classification thành công!" }});
+        navigate("/classifications", { state: { message: "Cập nhật classification thành công!", type: 'success' }});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -110,8 +110,7 @@ function Update({ onUpdate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to update classification: ${errorMessage}`);
       } else {
-        setError("Failed to update classification.");
-        setError("Không thể cập nhật classification! Vui lòng thử lại.");
+        navigate("/classifications", { state: { message: "Không thể cập nhật classification! Vui lòng thử lại. ", type: 'danger' }});
       }
     }
 

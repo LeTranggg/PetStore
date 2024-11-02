@@ -2,7 +2,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 
-function Login({ setAuth, setRole }) {
+function Login({ setAuth, setRole, setUser }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,19 +25,35 @@ function Login({ setAuth, setRole }) {
       });
 
       // Nếu đăng nhập thành công, lưu token và role
-      const { token, role } = response.data;
+      //console.log('Login response:', response.data);
 
-      if (role) {
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
+      if (response.data && response.data.token) {
+        // Lưu token
+        localStorage.setItem('token', response.data.token);
 
-        setRole(role); // Set role cho App.js
-        setAuth(true); // Set trạng thái authenticated thành true
+        // Lấy thông tin user từ response
+        const userData = response.data.user;
 
-        // Thông báo thành công
-        console.log("Login successful, role:", role);
+        if (userData) {
+          // Lưu role riêng
+          localStorage.setItem('role', userData.role);
+
+          // Lưu toàn bộ thông tin user
+          localStorage.setItem('user', JSON.stringify(userData));
+
+          // Set states
+          setAuth(true);
+          setRole(userData.role);
+          setUser(userData);
+
+          //console.log('Saved user data:', userData);
+          //console.log('Saved role:', userData.role);
+
+          // Navigate to home
+          navigate('/');
+        }
       } else {
-        throw new Error("Role is undefined");
+        setError("Invalid user data received");
       }
     } catch (error) {
       setError("Login failed. Please check your credentials.");

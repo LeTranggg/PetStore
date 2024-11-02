@@ -52,7 +52,7 @@ function Create({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/users", { state: { message: "Tạo tài khoản thành công! Vui lòng kiểm tra email."}});
+        navigate("/users", { state: { message: "Tạo tài khoản thành công! Vui lòng kiểm tra email.", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -65,8 +65,7 @@ function Create({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create user: ${errorMessage}`);
       } else {
-        setError("Failed to create user.");
-        navigate("/users", { state: { message: "Không thể tạo tài khoản! Vui lòng thử lại." }});
+        navigate("/users", { state: { message: "Không thể tạo tài khoản! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };

@@ -66,7 +66,7 @@ function Update({ onUpdate }) {
           onUpdate(updatedData);
         }
 
-        navigate("/shippings", { state: { message: "Cập nhật shipping thành công!" }});
+        navigate("/shippings", { state: { message: "Cập nhật shipping thành công!", type: 'success' }});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -78,8 +78,7 @@ function Update({ onUpdate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to update shipping: ${errorMessage}`);
       } else {
-        setError("Failed to update shipping.");
-        navigate("/shippings", { state: { message: "Không thể cập nhật shipping! Vui lòng thử lại." }});
+        navigate("/shippings", { state: { message: "Không thể cập nhật shipping! Vui lòng thử lại.", type: 'danger' }});
       }
     }
 

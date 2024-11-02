@@ -34,14 +34,14 @@ function Update({ onUpdate }) {
           onUpdate(updatedRole);
         }
 
-        navigate("/roles", { state: { message: "Cập nhật role thành công!" } });
+        navigate("/roles", { state: { message: "Cập nhật role thành công!", type: 'success' } });
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
       }
     } catch (error) {
       console.error('Error:', error); // Log chi tiết lỗi
-      setError("Không thể cập nhật role! Vui lòng thử lại.");
+      navigate("/roles", { state: { message: "Không thể cập nhật role! Vui lòng thử lại.", type: 'danger' } });
     }
   };
 

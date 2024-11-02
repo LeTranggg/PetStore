@@ -8,10 +8,12 @@ import ClassificationIndex from "./components/ClassificationManagement/Index";
 import UpdateClassification from "./components/ClassificationManagement/Update";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
+import Register from "./components/Register";
+import Profile from "./components/Profile";
+import ChangePass from "./components/ChangePass";
 import CreateProduct from "./components/ProductManagement/Create";
 import ProductIndex from "./components/ProductManagement/Index";
 import UpdateProduct from "./components/ProductManagement/Update";
-import Register from "./components/Register";
 import CreateRole from "./components/RoleManagement/Create";
 import RoleIndex from "./components/RoleManagement/Index";
 import UpdateRole from "./components/RoleManagement/Update";
@@ -32,30 +34,63 @@ function App() {
 
   // Khi ứng dụng khởi chạy, lấy thông tin từ localStorage
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedRole = localStorage.getItem("role");
-    const storedUser = localStorage.getItem("user");
-    if (token) {
-      setIsAuthenticated(true); // Thiết lập authenticated nếu có token
-    } else {
-      setIsAuthenticated(false); // Nếu không có token thì không authenticated
-    }
-    if (storedRole) {
-      setRole(storedRole);
-    }
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []); // Chạy một lần khi component được mount
+    try {
+      // Lấy và kiểm tra token
+      const token = localStorage.getItem("token");
+      //console.log('Stored token:', token);
 
-  console.log("User role:", role);
-  console.log("User:", user);
+      // Lấy thông tin user
+      const userDataString = localStorage.getItem("user");
+      //console.log('Stored user string:', userDataString);
+
+      if (token) {
+        setIsAuthenticated(true);
+
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          //console.log('Parsed user:', userData);
+
+          if (userData && Object.keys(userData).length > 0) {
+            // Set user data
+            setUser(userData);
+
+            // Set role từ user data
+            if (userData.role) {
+              setRole(userData.role);
+              //console.log('Set role to:', userData.role);
+            }
+          }
+        }
+      } else {
+        setIsAuthenticated(false);
+        setRole(null);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error processing stored data:', error);
+      setIsAuthenticated(false);
+      setRole(null);
+      setUser(null);
+
+      // Clear localStorage in case of corruption
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('role');
+    }
+  }, []);
 
   const Home = () => (
     <div>
       <h2>Welcome!</h2>
-      <Logout setAuth={setIsAuthenticated} />
-      {role === "Admin" ? (
+      <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
+      {user && (
+        <>
+          <div>User ID: {user.id}</div>
+          <div>User Role: {user.role}</div>
+          <Link to={`/profile/${user.id}`}>Go to Your Profile</Link>
+        </>
+      )}
+      {user && user.role === "Admin" ? (
         <div>
           <p>Hello, Admin!</p>
           <div>
@@ -81,7 +116,7 @@ function App() {
           </div>
         </div>
       ) : (
-        <p>Welcome, {role ? role : "User"}!</p>
+        <p>Welcome, {user ? user.role : "Guest"}!</p>
       )}
     </div>
   );
@@ -191,16 +226,26 @@ function App() {
             element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" />}
           />
 
+          {/* Trang profile */}
+          <Route
+            path="/profile/:userId"
+            element={isAuthenticated ? <Profile user={user} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/profile/changePass/:userId"
+            element={isAuthenticated ? <ChangePass user={user} /> : <Navigate to="/profile" />}
+          />
+
           {/* Trang đăng nhập */}
           <Route
             path="/login"
-            element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" />}
           />
 
           {/* Trang đăng ký */}
           <Route
             path="/register"
-            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" />}
           />
 
           {/* Redirect tất cả các route khác về trang chủ */}

@@ -72,7 +72,7 @@ function Update({ onUpdate }) {
           onUpdate(updatedData);
         }
 
-        navigate("/suppliers", { state: { message: "Cập nhật supplier thành công!" }});
+        navigate("/suppliers", { state: { message: "Cập nhật supplier thành công!", type: 'success' }});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -84,8 +84,7 @@ function Update({ onUpdate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to update supplier: ${errorMessage}`);
       } else {
-        setError("Failed to update supplier.");
-        navigate("/suppliers", { state: { message: "Không thể cập nhật supplier! Vui lòng thử lại." }});
+        navigate("/suppliers", { state: { message: "Không thể cập nhật supplier! Vui lòng thử lại.", type: 'danger' }});
       }
     }
 

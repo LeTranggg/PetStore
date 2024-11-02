@@ -13,11 +13,10 @@ function Delete({ supplierId, onDelete }) {
       setSuccess(true);
       setError(null);
       onDelete(supplierId);  // Gọi callback để xóa supplier khỏi danh sách
-      navigate("/suppliers", { state: { message: "Xoá supplier thành công!" }});
+      navigate("/suppliers", { state: { message: "Xoá supplier thành công!", type: 'success' }});
     } catch (error) {
-      setError("Failed to delete supplier.");
       setSuccess(false);
-      navigate("/suppliers", { state: { message: "Không thể xoá supplier! Vui lòng thử lại." }});
+      navigate("/suppliers", { state: { message: "Không thể xoá supplier! Vui lòng thử lại.", type: 'danger' }});
     }
   };
 

@@ -34,14 +34,14 @@ function Update({ onUpdate }) {
           onUpdate(updatedCategory);
         }
 
-        navigate("/categories", { state: { message: "Cập nhật category thành công!" } });
+        navigate("/categories", { state: { message: "Cập nhật category thành công!", type: 'success' } });
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but category might have been created.");
       }
     } catch (error) {
       console.error('Error:', error); // Log chi tiết lỗi
-      setError("Không thể cập nhật category! Vui lòng thử lại.");
+      navigate("/categories", { state: { message: "Không thể cập nhật category! Vui lòng thử lại.", type: 'danger' } });
     }
   };
 

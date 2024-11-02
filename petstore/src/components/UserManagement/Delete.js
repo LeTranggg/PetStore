@@ -13,11 +13,10 @@ function Delete({ userId, onDelete }) {
       setSuccess(true);
       setError(null);
       onDelete(userId);  // Gọi callback để xóa user khỏi danh sách
-      navigate("/users", { state: { message: "Xoá tài khoản thành công!" }});
+      navigate("/users", { state: { message: "Xoá tài khoản thành công!", type: 'success' }});
     } catch (error) {
-      setError("Failed to delete user.");
       setSuccess(false);
-      navigate("/users", { state: { message: "Không thể xoá tài khoản! Vui lòng thử lại." }});
+      navigate("/users", { state: { message: "Không thể xoá tài khoản! Vui lòng thử lại.", type: 'danger' }});
     }
   };
 

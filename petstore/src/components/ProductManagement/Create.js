@@ -60,7 +60,7 @@ function Create({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/products", { state: { message: "Tạo product thành công!"}});
+        navigate("/products", { state: { message: "Tạo product thành công!", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -73,8 +73,7 @@ function Create({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create product: ${errorMessage}`);
       } else {
-        setError("Failed to create product.");
-        navigate("/products", { state: { message: "Không thể tạo product! Vui lòng thử lại." }});
+        navigate("/products", { state: { message: "Không thể tạo product! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };

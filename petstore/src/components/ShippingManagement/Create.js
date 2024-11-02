@@ -32,7 +32,7 @@ function Create({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/shippings", { state: { message: "Tạo shipping thành công!"}});
+        navigate("/shippings", { state: { message: "Tạo shipping thành công!", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -45,8 +45,7 @@ function Create({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create shipping: ${errorMessage}`);
       } else {
-        setError("Failed to create shipping.");
-        navigate("/shippings", { state: { message: "Không thể tạo shipping! Vui lòng thử lại." }});
+        navigate("/shippings", { state: { message: "Không thể tạo shipping! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };

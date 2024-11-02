@@ -13,11 +13,10 @@ function Delete({ shippingId, onDelete }) {
       setSuccess(true);
       setError(null);
       onDelete(shippingId);  // Gọi callback để xóa shipping khỏi danh sách
-      navigate("/shippings", { state: { message: "Xoá shipping thành công!" }});
+      navigate("/shippings", { state: { message: "Xoá shipping thành công!", type: 'success' }});
     } catch (error) {
-      setError("Failed to delete shipping.");
       setSuccess(false);
-      navigate("/shippings", { state: { message: "Không thể xoá shipping! Vui lòng thử lại." }});
+      navigate("/shippings", { state: { message: "Không thể xoá shipping! Vui lòng thử lại.", type: 'danger' }});
     }
   };
 

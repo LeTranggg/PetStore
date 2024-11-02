@@ -20,12 +20,12 @@ function Create({ onCreate }) {
         }
 
         // Chuyển hướng ngay lập tức và truyền message tới trang Index
-        navigate("/roles", { state: { message: "Tạo role thành công!" } });
+        navigate("/roles", { state: { message: "Tạo role thành công!", type: 'success' } });
       } else {
         throw new Error("API failed but role might have been created.");
       }
     } catch (error) {
-      setError("Không thể tạo role! Vui lòng thử lại.");
+      navigate("/roles", { state: { message: "hông thể tạo role! Vui lòng thử lại.", type: 'danger' } });
     }
   };
 

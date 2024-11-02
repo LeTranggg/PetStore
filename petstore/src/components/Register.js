@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../utils/Axios";
 
-function Create({ onCreate }) {
+function Register({ onCreate }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -101,4 +101,4 @@ function Create({ onCreate }) {
   );
 }
 
-export default Create;
+export default Register;
