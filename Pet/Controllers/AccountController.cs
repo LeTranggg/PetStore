@@ -242,6 +242,67 @@ namespace Pet.Controllers
             return Ok("Password changed successfully.");
         }
 
+        [HttpGet("reset-password")]
+        public IActionResult ResetPasswordRedirect([FromQuery] string token, [FromQuery] string email, [FromQuery] string redirectUrl)
+        {
+            return Redirect($"{redirectUrl}/reset-pass?token={token}&email={email}");
+        }
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(resetPasswordDto.Email);
+            if (user == null)
+            {
+                return BadRequest("Token không hợp lệ hoặc đã hết hạn.");
+            }
+
+            // Kiểm tra token
+            if (user.SecurityStamp != resetPasswordDto.Token)
+            {
+                return BadRequest("Token không hợp lệ hoặc đã hết hạn.");
+            }
+
+            // Kiểm tra password mới và confirm password
+            if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmNewPassword)
+            {
+                return BadRequest("Mật khẩu mới không khớp.");
+            }
+
+            // Cập nhật mật khẩu mới
+            user.PasswordHash = _passwordHasher.HashPassword(user, resetPasswordDto.NewPassword);
+
+            // Tạo security stamp mới để vô hiệu hóa token cũ
+            user.SecurityStamp = Guid.NewGuid().ToString();
+
+            _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Đặt lại mật khẩu thành công.");
+        }
+
+        [HttpGet("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromQuery] string email)
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+            if (user == null)
+                return NotFound("Người dùng không tồn tại.");
+
+            // Tạo token reset mật khẩu
+            user.SecurityStamp = Guid.NewGuid().ToString();
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            // Tạo link reset mật khẩu
+            var backendUrl = _configuration["Backend:Url"];
+            var frontendUrl = _configuration["Frontend:Url"];
+            var resetUrl = $"{backendUrl}/api/account/reset-password?token={user.SecurityStamp}&email={user.Email}&redirectUrl={frontendUrl}";
+
+            // Gửi email chứa link reset mật khẩu
+            await _emailService.SendEmailAsync(user.Email, "Đặt lại mật khẩu",
+                $"Vui lòng đặt lại mật khẩu của bạn bằng cách nhấp vào <a href='{resetUrl}'>đây</a>.");
+
+            return Ok("Link đặt lại mật khẩu đã được gửi qua email.");
+        }
     }
 }

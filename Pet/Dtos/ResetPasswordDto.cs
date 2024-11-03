@@ -11,9 +11,11 @@ namespace Pet.Dtos
         public string Token { get; set; }
 
         [Required]
-        public string Password { get; set; }
+        [MinLength(6)]
+        public string NewPassword { get; set; }
 
         [Required]
-        public string ConfirmPassword { get; set; }
+        [Compare("NewPassword")]
+        public string ConfirmNewPassword { get; set; }
     }
 }
