@@ -11,6 +11,8 @@ import Logout from "./components/Logout";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 import ChangePass from "./components/ChangePass";
+import ForgotPass from "./components/ForgotPass";
+import ResetPass from "./components/ResetPass";
 import CreateProduct from "./components/ProductManagement/Create";
 import ProductIndex from "./components/ProductManagement/Index";
 import UpdateProduct from "./components/ProductManagement/Update";
@@ -247,7 +249,7 @@ function App() {
             element={isAuthenticated ? <Profile user={user} /> : <Navigate to="/profile" replace/>}
           />
           <Route
-            path="/profile/changePass/:userId"
+            path="/profile/change-pass/:userId"
             element={isAuthenticated ? <ChangePass user={user} /> : <Navigate to="/profile" replace/>}
           />
 
@@ -261,6 +263,16 @@ function App() {
           <Route
             path="/register"
             element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
+          />
+
+          {/* Trang quên mật khẩu */}
+          <Route
+            path="/forgot-pass"
+            element={!isAuthenticated ? <ForgotPass setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
+          />
+          <Route
+            path="/reset-pass"
+            element={!isAuthenticated ? <ResetPass setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
           />
 
           {/* Redirect tất cả các route khác về trang chủ */}

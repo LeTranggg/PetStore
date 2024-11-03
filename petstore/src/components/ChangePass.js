@@ -127,8 +127,7 @@ const ChangePass = ({ user }) => { // Nhận prop user giống Profile component
 
         <button
           type="submit"
-          disabled={loading}
-        >
+          disabled={loading}>
           {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
         </button>
       </form>

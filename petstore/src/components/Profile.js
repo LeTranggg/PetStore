@@ -18,7 +18,7 @@ function Profile({ user }) {
   const [message, setMessage] = useState(location.state?.message || null);
 
   const handleChangePassClick = () => {
-    navigate(`/profile/changePass/${userId || user?.id}`); // Sử dụng userId từ URL params hoặc từ prop user
+    navigate(`/profile/change-pass/${userId || user?.id}`); // Sử dụng userId từ URL params hoặc từ prop user
   };
 
   useEffect(() => {

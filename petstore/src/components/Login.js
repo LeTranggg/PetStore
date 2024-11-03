@@ -1,13 +1,16 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
+import { Toast, ToastContainer } from "react-bootstrap";
 
 function Login({ setAuth, setRole, setUser }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+  const [message, setMessage] = useState(location.state?.message || null);
 
   const handleRegisterClick = () => {
     navigate("/register"); // Điều hướng tới trang đăng ký
@@ -92,10 +95,26 @@ function Login({ setAuth, setRole, setUser }) {
             </div>
             <button type="submit">Login</button>
             <button type="button" onClick={() => handleRegisterClick()}>Register</button>
+            <div>
+              <Link to="/forgot-pass">Quên mật khẩu</Link>
+            </div>
           </>
         )}
       </form>
-      {error && <p>{error}</p>} {/* Hiển thị lỗi nếu có */}
+      {error && <p>{error}</p>}
+
+      <ToastContainer position="top-end" className="p-3">
+        {message && (
+          <Toast
+            bg={location.state?.type === 'success' ? 'success' : 'danger'}
+            onClose={() => setMessage(null)}
+            show={!!message}
+            delay={3000}
+            autohide>
+            <Toast.Body>{message}</Toast.Body>
+          </Toast>
+        )}
+      </ToastContainer>
     </div>
   );
 }
