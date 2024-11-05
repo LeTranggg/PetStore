@@ -81,8 +81,8 @@ namespace Pet.Datas
 
             modelBuilder.Entity<Classification>()
                 .HasMany(c => c.ClassificationMedias)
-                .WithOne(ci => ci.Classification)
-                .HasForeignKey(ci => ci.ClassificationId)
+                .WithOne(cm => cm.Classification)
+                .HasForeignKey(cm => cm.ClassificationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // User
@@ -131,8 +131,8 @@ namespace Pet.Datas
 
             modelBuilder.Entity<Review>()
                 .HasMany(r => r.ReviewMedias)
-                .WithOne(rd => rd.Review)
-                .HasForeignKey(rd => rd.ReviewId)
+                .WithOne(rm => rm.Review)
+                .HasForeignKey(rm => rm.ReviewId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Role

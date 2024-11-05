@@ -6,7 +6,6 @@ using Pet.Repositories.IRepositories;
 
 namespace Pet.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -26,6 +25,15 @@ namespace Pet.Controllers
             return Ok(products);
         }
 
+        [HttpGet("product-detail/{id}")]
+        public async Task<IActionResult> ProductDetail(int id)
+        {
+            var product = await _unitOfWork.ProductRepository.GetProductDetailAsync(id);
+            if (product == null) return NotFound();
+            return Ok(product);
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
@@ -34,6 +42,7 @@ namespace Pet.Controllers
             return Ok(product);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto createProductDto)
         {
@@ -59,6 +68,7 @@ namespace Pet.Controllers
             return Ok("Tạo product thành công.");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updatedProductDto)
         {
@@ -97,6 +107,7 @@ namespace Pet.Controllers
             return Ok("Cập nhật product thành công.");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
@@ -108,5 +119,6 @@ namespace Pet.Controllers
 
             return Ok("Xóa tài khoản thành công.");
         }
+
     }
 }

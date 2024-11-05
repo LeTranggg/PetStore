@@ -16,15 +16,15 @@ namespace Pet.Repositories
         public async Task<IEnumerable<Classification>> GetAllClassificationsWithProductsAsync()
         {
             return await _context.Classifications
-                .Include(u => u.Product)
+                .Include(c => c.Product)
                 .ToListAsync();
         }
 
         public async Task<Classification> GetClassificationWithProductByIdAsync(int id)
         {
             return await _context.Classifications
-                .Include(u => u.Product)
-                .FirstOrDefaultAsync(u => u.Id == id);
+                .Include(c => c.Product)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
     }

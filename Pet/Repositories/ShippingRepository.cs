@@ -15,7 +15,7 @@ namespace Pet.Repositories
 
         public async Task<Shipping> GetShippingByNameAsync(string shippingName)
         {
-            return await _context.Shippings.SingleOrDefaultAsync(r => r.Name == shippingName);
+            return await _context.Shippings.SingleOrDefaultAsync(sh => sh.Name == shippingName);
         }
     }
 }

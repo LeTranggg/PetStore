@@ -15,21 +15,21 @@ namespace Pet.Repositories
 
         public async Task<Supplier> GetSupplierByNameAsync(string supplierName)
         {
-            return await _context.Suppliers.SingleOrDefaultAsync(r => r.Name == supplierName);
+            return await _context.Suppliers.SingleOrDefaultAsync(s => s.Name == supplierName);
         }
 
         public async Task<IEnumerable<Supplier>> GetAllSuppliersWithProductsAsync()
         {
             return await _context.Suppliers
-                .Include(r => r.Products) // Nạp danh sách Products kèm với Supplier
+                .Include(s => s.Products) // Nạp danh sách Products kèm với Supplier
                 .ToListAsync();
         }
 
         public async Task<Supplier> GetSupplierByEmailAsync(string email)
         {
             return await _context.Suppliers
-                .Include(u => u.Products)
-                .SingleOrDefaultAsync(u => u.Email == email);
+                .Include(s => s.Products)
+                .SingleOrDefaultAsync(s => s.Email == email);
         }
     }
 }

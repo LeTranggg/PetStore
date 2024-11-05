@@ -15,13 +15,13 @@ namespace Pet.Repositories
 
         public async Task<Category> GetCategoryByNameAsync(string categoryName)
         {
-            return await _context.Categories.SingleOrDefaultAsync(r => r.Name == categoryName);
+            return await _context.Categories.SingleOrDefaultAsync(c => c.Name == categoryName);
         }
 
         public async Task<IEnumerable<Category>> GetAllCategoriesWithProductsAsync()
         {
             return await _context.Categories
-                .Include(r => r.Products) // Nạp danh sách Products kèm với Category
+                .Include(c => c.Products) // Nạp danh sách Products kèm với Category
                 .ToListAsync();
         }
     }

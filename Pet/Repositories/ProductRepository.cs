@@ -17,16 +17,16 @@ namespace Pet.Repositories
         public async Task<IEnumerable<Product>> GetAllProductsWithCategoriesSuppliersAsync()
         {
             return await _context.Products
-                .Include(u => u.Category)
-                .Include(u => u.Supplier)
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
                 .ToListAsync();
         }
 
         public async Task<Product> GetProductWithCategorySupplierByIdAsync(int id)
         {
             return await _context.Products
-                .Include(u => u.Category)
-                .Include(u => u.Supplier)
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
@@ -38,9 +38,17 @@ namespace Pet.Repositories
         public async Task<IEnumerable<Product>> GetAllProductsWithClassificationsAsync()
         {
             return await _context.Products
-                .Include(r => r.Classifications) // Nạp danh sách Products kèm với Category
+                .Include(p => p.Classifications) // Nạp danh sách Products kèm với Category
                 .ToListAsync();
         }
 
+        public async Task<Product> GetProductDetailAsync(int id)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .Include(p => p.Classifications)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
     }
 }
