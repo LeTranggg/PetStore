@@ -16,6 +16,7 @@ import ResetPass from "./components/ResetPass";
 import CreateProduct from "./components/ProductManagement/Create";
 import ProductIndex from "./components/ProductManagement/Index";
 import UpdateProduct from "./components/ProductManagement/Update";
+import ProductDetail from "./components/ProductDetail";
 import CreateRole from "./components/RoleManagement/Create";
 import RoleIndex from "./components/RoleManagement/Index";
 import UpdateRole from "./components/RoleManagement/Update";
@@ -213,6 +214,12 @@ function App() {
           <Route
             path="/products/update/:productId"
             element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" replace/>}
+          />
+
+          {/* Trang products chi tiết*/}
+          <Route
+            path="/products/product-detail/:productId"
+            element={isAuthenticated && role === "Customer" ? <ProductDetail /> : <Navigate to="/" replace/>}
           />
 
           {/* Trang quản lý classifications */}
