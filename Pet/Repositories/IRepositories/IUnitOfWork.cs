@@ -9,6 +9,8 @@
         IProductRepository ProductRepository { get; }
         IClassificationRepository ClassificationRepository { get; }
         IShippingRepository ShippingRepository { get; }
+        ICartRepository CartRepository { get; }
+        ICartItemRepository CartItemRepository { get; }
 
         Task<int> SaveAsync();
     }
