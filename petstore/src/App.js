@@ -29,6 +29,9 @@ import UpdateSupplier from "./components/SupplierManagement/Update";
 import CreateUser from "./components/UserManagement/Create";
 import UserIndex from "./components/UserManagement/Index";
 import UpdateUser from "./components/UserManagement/Update";
+import CartItem from "./components/CartManagement/CartItem";
+import CartIndex from "./components/CartManagement/Index";
+import UpdateCart from "./components/CartManagement/Update";
 import Admin from './screens/Admin';
 import Customer from './screens/Customer';
 import Guest from './screens/Guest';
@@ -236,7 +239,7 @@ function App() {
             element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" replace/>}
           />
 
-          {/* Trang quản lý classifications */}
+          {/* Trang quản lý shippings */}
           <Route
             path="/shippings"
             element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" replace/>}
@@ -248,6 +251,20 @@ function App() {
           <Route
             path="/shippings/update/:shippingId"
             element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" replace/>}
+          />
+
+          {/* Trang quản lý cart */}
+          <Route
+            path="/cart"
+            element={isAuthenticated && role === "Customer" ? <CartIndex /> : <Navigate to="/" replace/>}
+          />
+          <Route
+            path="/cart/cart-item"
+            element={isAuthenticated && role === "Customer" ? <CartItem /> : <Navigate to="/cart" replace/>}
+          />
+          <Route
+            path="/cart/update/:cartItemId"
+            element={isAuthenticated && role === "Customer" ? <UpdateCart /> : <Navigate to="/cart" replace/>}
           />
 
           {/* Trang profile */}

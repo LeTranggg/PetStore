@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import axios from "../utils/Axios";
-import { Card } from "react-bootstrap";
 
 function Customer({ user }) {
   const [products, setProducts] = useState([]);
@@ -13,32 +13,34 @@ function Customer({ user }) {
         setProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
-      };
+      }
     };
-
     fetchProducts();
   }, []);
 
   return (
     <div>
-      <h2>Welcome, Customer!</h2>
-      <p>Hello, {user.firstName}!</p>
+      <div>
+        <h1>Welcome, {user.firstName}!</h1>
+        <Link to="/cart">View Cart</Link>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div>
         {products.map((product) => (
-          <Link key={product.id} to={`/products/product-detail/${product.id}`}>
-            <Card className="hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-xl font-semibold">{product.name}</h3>
-              <p className="text-lg font-bold text-primary">${product.price}</p>
-              <p className="text-gray-600">Category: {product.category.name}</p>
-              <p className="text-gray-600">Supplier: {product.supplier.name}</p>
-              {product.description && (
-                <p className="mt-2 text-gray-700 line-clamp-2">
-                  {product.description}
-                </p>
-              )}
-            </Card>
-          </Link>
+          <Card key={product.id} className="p-4">
+            <h2 className="text-xl font-bold mb-2">{product.name}</h2>
+            <p className="text-lg font-semibold mb-2">${product.price}</p>
+            <p className="mb-2">
+              <span className="font-semibold">Category:</span> {product.category.name}
+            </p>
+            <p className="mb-2">
+              <span className="font-semibold">Supplier:</span> {product.supplier.name}
+            </p>
+            {product.description && (
+              <p className="mb-4">{product.description}</p>
+            )}
+            <Link to={`/products/product-detail/${product.id}`}>View Details</Link>
+          </Card>
         ))}
       </div>
     </div>
