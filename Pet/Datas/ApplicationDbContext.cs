@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Pet.Models;
+using System.Reflection.Metadata;
 
 namespace Pet.Datas
 {
@@ -91,9 +92,9 @@ namespace Pet.Datas
                 .HasColumnType("date"); //Make sure to save as date in database
 
             modelBuilder.Entity<User>()
-                .HasMany(u => u.Carts)
+                .HasOne(u => u.Cart)
                 .WithOne(c => c.User)
-                .HasForeignKey(c => c.UserId)
+                .HasForeignKey<Cart>(c => c.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<User>()
@@ -120,6 +121,20 @@ namespace Pet.Datas
                 .HasMany(o => o.OrderDetails)
                 .WithOne(od => od.Order)
                 .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Payment
+            modelBuilder.Entity<Payment>()
+                .HasOne(pa => pa.Order)
+                .WithOne(o => o.Payment)
+                .HasForeignKey<Order>(o => o.PaymentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Shipping
+            modelBuilder.Entity<Shipping>()
+                .HasMany(s => s.Orders)
+                .WithOne(o => o.Shipping)
+                .HasForeignKey(o => o.ShippingId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Review

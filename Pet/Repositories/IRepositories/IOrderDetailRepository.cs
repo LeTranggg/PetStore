@@ -2,7 +2,7 @@
 
 namespace Pet.Repositories.IRepositories
 {
-    public interface IShippingRepository : IRepository<Shipping>
+    public interface IOrderDetailRepository : IRepository<OrderDetail>
     {
     }
 }

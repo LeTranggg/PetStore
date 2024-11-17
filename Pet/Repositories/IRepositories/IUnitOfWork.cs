@@ -11,6 +11,9 @@
         IShippingRepository ShippingRepository { get; }
         ICartRepository CartRepository { get; }
         ICartItemRepository CartItemRepository { get; }
+        IPaymentRepository PaymentRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IOrderDetailRepository OrderDetailRepository { get; }
 
         Task<int> SaveAsync();
     }

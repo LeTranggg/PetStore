@@ -43,10 +43,9 @@ namespace Pet.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
+                    ByCash = table.Column<bool>(type: "bit", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsSuccessful = table.Column<bool>(type: "bit", nullable: false)
+                    IsSuccessfull = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,7 +58,7 @@ namespace Pet.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ShippingMethod = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -286,14 +285,16 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CoinEarned = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsPaid = table.Column<bool>(type: "bit", nullable: false),
+                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RecipientName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RecipientPhone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrderStatus = table.Column<int>(type: "int", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    PaymentId = table.Column<int>(type: "int", nullable: false),
-                    ShippingId = table.Column<int>(type: "int", nullable: false)
+                    ShippingId = table.Column<int>(type: "int", nullable: false),
+                    PaymentId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -309,7 +310,7 @@ namespace Pet.Migrations
                         column: x => x.PaymentId,
                         principalTable: "Payments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Orders_Shippings_ShippingId",
                         column: x => x.ShippingId,
@@ -406,7 +407,7 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MediaUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MediaType = table.Column<int>(type: "int", nullable: false),
+                    IsImage = table.Column<bool>(type: "bit", nullable: false),
                     ClassificationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -485,7 +486,7 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MediaUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MediaType = table.Column<int>(type: "int", nullable: false),
+                    IsImage = table.Column<bool>(type: "bit", nullable: false),
                     ReviewId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -502,12 +503,12 @@ namespace Pet.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { 1, "9e55d3d5-40b8-4539-82e2-7a87ac018779", "Admin", "ADMIN" });
+                values: new object[] { 1, "a9ef859f-44cc-4cae-847a-25231152817e", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "IsBlock", "LastName", "LockoutEnabled", "LockoutEnd", "LoyaltyCoin", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Photo", "Reason", "RoleId", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { 1, 0, "Admin Address", "6eb7b496-9af8-4488-a31f-472d688f2237", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEM66o4RxgUvlaTdGMIPWI8nbntOGusaDSrdQCp0vDj2jV3YUFQTpWZT2YJ6vzUpHNA==", "1234567890", false, null, null, 1, "b14bda1f-fc42-4afc-ac58-1e15301056f8", false, "admin" });
+                values: new object[] { 1, 0, "Admin Address", "ac2045c1-297f-4c1c-a2d0-893ac3780b11", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAECrrGz4JuNQy0fR+mMA0eePbnIXh+K0zexWjfvM9DRL76F9+HD4dFd184IPPMCndAA==", "1234567890", false, null, null, 1, "e2a8a6fb-c798-44a5-93dd-0c9ee373da13", false, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -566,7 +567,8 @@ namespace Pet.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Carts_UserId",
                 table: "Carts",
-                column: "UserId");
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClassificationMedias_ClassificationId",
@@ -591,7 +593,8 @@ namespace Pet.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_PaymentId",
                 table: "Orders",
-                column: "PaymentId");
+                column: "PaymentId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_ShippingId",

@@ -31,7 +31,8 @@ namespace Pet.Models
         public Role Role { get; set; }
 
         [ValidateNever]
-        public ICollection<Cart> Carts { get; set; }
+        public Cart Cart { get; set; }
+
         [ValidateNever]
         public ICollection<Order> Orders { get; set; }
         [ValidateNever]

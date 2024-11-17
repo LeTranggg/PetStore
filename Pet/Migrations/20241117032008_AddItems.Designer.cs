@@ -12,7 +12,7 @@ using Pet.Datas;
 namespace Pet.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241024200128_AddItems")]
+    [Migration("20241117032008_AddItems")]
     partial class AddItems
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -140,7 +140,8 @@ namespace Pet.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Carts");
                 });
@@ -245,8 +246,8 @@ namespace Pet.Migrations
                     b.Property<int>("ClassificationId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MediaType")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("bit");
 
                     b.Property<string>("MediaUrl")
                         .IsRequired()
@@ -267,18 +268,14 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("CoinEarned")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("bit");
+                    b.Property<int>("OrderStatus")
+                        .HasColumnType("int");
 
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
@@ -286,19 +283,28 @@ namespace Pet.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecipientName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecipientPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShippingAddress")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ShippingId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PaymentId");
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
 
                     b.HasIndex("ShippingId");
 
@@ -344,17 +350,14 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<bool>("ByCash")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsSuccessful")
+                    b.Property<bool>("IsSuccessfull")
                         .HasColumnType("bit");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -466,8 +469,8 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("MediaType")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("bit");
 
                     b.Property<string>("MediaUrl")
                         .IsRequired()
@@ -517,7 +520,7 @@ namespace Pet.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "9e55d3d5-40b8-4539-82e2-7a87ac018779",
+                            ConcurrencyStamp = "a9ef859f-44cc-4cae-847a-25231152817e",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -531,13 +534,11 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ShippingMethod")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -688,7 +689,7 @@ namespace Pet.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             Address = "Admin Address",
-                            ConcurrencyStamp = "6eb7b496-9af8-4488-a31f-472d688f2237",
+                            ConcurrencyStamp = "ac2045c1-297f-4c1c-a2d0-893ac3780b11",
                             DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
@@ -699,11 +700,11 @@ namespace Pet.Migrations
                             LoyaltyCoin = 0m,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEM66o4RxgUvlaTdGMIPWI8nbntOGusaDSrdQCp0vDj2jV3YUFQTpWZT2YJ6vzUpHNA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAECrrGz4JuNQy0fR+mMA0eePbnIXh+K0zexWjfvM9DRL76F9+HD4dFd184IPPMCndAA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = false,
                             RoleId = 1,
-                            SecurityStamp = "b14bda1f-fc42-4afc-ac58-1e15301056f8",
+                            SecurityStamp = "e2a8a6fb-c798-44a5-93dd-0c9ee373da13",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -763,8 +764,8 @@ namespace Pet.Migrations
             modelBuilder.Entity("Pet.Models.Cart", b =>
                 {
                     b.HasOne("Pet.Models.User", "User")
-                        .WithMany("Carts")
-                        .HasForeignKey("UserId")
+                        .WithOne("Cart")
+                        .HasForeignKey("Pet.Models.Cart", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -815,13 +816,13 @@ namespace Pet.Migrations
             modelBuilder.Entity("Pet.Models.Order", b =>
                 {
                     b.HasOne("Pet.Models.Payment", "Payment")
-                        .WithMany()
-                        .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne("Order")
+                        .HasForeignKey("Pet.Models.Order", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Pet.Models.Shipping", "Shipping")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("ShippingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -963,6 +964,12 @@ namespace Pet.Migrations
                     b.Navigation("OrderDetails");
                 });
 
+            modelBuilder.Entity("Pet.Models.Payment", b =>
+                {
+                    b.Navigation("Order")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Pet.Models.Product", b =>
                 {
                     b.Navigation("Classifications");
@@ -982,6 +989,11 @@ namespace Pet.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("Pet.Models.Shipping", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("Pet.Models.Supplier", b =>
                 {
                     b.Navigation("Products");
@@ -989,7 +1001,8 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.User", b =>
                 {
-                    b.Navigation("Carts");
+                    b.Navigation("Cart")
+                        .IsRequired();
 
                     b.Navigation("Orders");
 

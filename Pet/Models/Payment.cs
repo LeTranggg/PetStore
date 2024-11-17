@@ -1,5 +1,6 @@
-﻿using Pet.Datas;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pet.Models
 {
@@ -7,12 +8,12 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
-        public decimal Price { get; set; }
-        [Required]
-        public PaymentMethod PaymentMethod { get; set; }
+        public bool ByCash { get; set; }
         [Required]
         public DateTime DateCreated { get; set; } = DateTime.Now;
-        public bool IsSuccessful { get; set; }
+        public bool IsSuccessfull { get; set; }
+
+        [ValidateNever]
+        public Order Order { get; set; }
     }
 }

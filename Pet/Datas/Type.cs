@@ -1,16 +1,18 @@
 ﻿namespace Pet.Datas
 {
-    public enum MediaType
-    {
-        Image,
-        Video
+    public enum ShippingMethod
+    {   Road,
+        Air,
+        Sea,
+        Rail
     }
 
-    public enum PaymentMethod
+    public enum OrderStatus
     {
-        DigitalWallet,
-        DebitCard,
-        CreditCard,
-        NetBanking
+        confirming,
+        packing,
+        shipping,
+        delivered,
+        cancelled
     }
 }

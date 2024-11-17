@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Pet.Datas;
 
 namespace Pet.Models
 {
@@ -10,36 +11,37 @@ namespace Pet.Models
         public int Id { get; set; }
         [Required]
         public DateTime DateCreated { get; set; } = DateTime.Now;
+        public decimal CoinEarned { get; set; }
+        public string? ShippingAddress { get; set; }
+        public string? RecipientName { get; set; }
+        public string? RecipientPhone { get; set; }
         [Required]
         public decimal Price { get; set; }
-        public decimal CoinEarned { get; set; }
         [Required]
-        public string Address { get; set; }
-        [Required]
-        public string Status { get; set; }
-        public bool IsPaid { get; set; }
+        public OrderStatus OrderStatus { get; set; }
+        public string? Reason { get; set; }
 
         public int UserId { get; set; }
         [ForeignKey("UserId")]
         public User User { get; set; }
-        public int PaymentId { get; set; }
-        [ForeignKey("PaymentId")]
-        public Payment Payment { get; set; }
         public int ShippingId { get; set; }
         [ForeignKey("ShippingId")]
         public Shipping Shipping { get; set; }
+        public int PaymentId { get; set; }
+        [ForeignKey("PaymentId")]
+        public Payment Payment { get; set; }
 
         [ValidateNever]
         public ICollection<OrderDetail> OrderDetails { get; set; }
 
         public void CalculateTotalPrice()
         {
-            decimal totalPrice = OrderDetails.Sum(od => od.Quantity * od.Price);
+            decimal totalPrice = OrderDetails.Sum(ci => ci.Quantity * ci.Price);
             decimal shippingCost = Shipping.CalculateShippingCost(
-                OrderDetails.Sum(od => od.Quantity * od.Classification.Weight),
-                OrderDetails.Max(od => od.Classification.Length),
-                OrderDetails.Max(od => od.Classification.Width),
-                OrderDetails.Max(od => od.Classification.Height)
+                OrderDetails.Sum(ci => ci.Quantity * ci.Classification.Weight),
+                OrderDetails.Max(ci => ci.Classification.Length),
+                OrderDetails.Max(ci => ci.Classification.Width),
+                OrderDetails.Max(ci => ci.Classification.Height)
             );
             Price = totalPrice + shippingCost;
         }
@@ -65,10 +67,11 @@ namespace Pet.Models
                 User.LoyaltyCoin = 0;
             }
             CoinEarned = CalculateLoyaltyCoins(finalPrice); //Calculate the new number of coins to receive based on the final order price
-            if (IsPaid && CoinEarned > 0)
+            if (OrderStatus == OrderStatus.delivered && CoinEarned > 0)
             {
                 User.LoyaltyCoin += CoinEarned;
             }
         }
+
     }
 }

@@ -19,6 +19,9 @@ namespace Pet.Repositories
         public IShippingRepository ShippingRepository { get; private set; }
         public ICartRepository CartRepository { get; private set; }
         public ICartItemRepository CartItemRepository { get; private set; }
+        public IPaymentRepository PaymentRepository { get; private set; }
+        public IOrderRepository OrderRepository { get; private set; }  
+        public IOrderDetailRepository OrderDetailRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
         {
@@ -34,6 +37,10 @@ namespace Pet.Repositories
             ShippingRepository = new ShippingRepository(_context);
             CartRepository = new CartRepository(_context);
             CartItemRepository = new CartItemRepository(_context);
+            PaymentRepository = new PaymentRepository(_context);
+            OrderRepository = new OrderRepository(_context);   
+            OrderDetailRepository = new OrderDetailRepository(_context);
+
         }
 
         public async Task<int> SaveAsync()
