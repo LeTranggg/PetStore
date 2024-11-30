@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Pet.Services.IServices;
 using Pet.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +18,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddControllers();
 builder.Services.AddControllers()
-  .AddJsonOptions(options =>
-  {
-      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-  });
+    .AddJsonOptions(options =>
+    {
+        // Prevent reference cycle issues
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+
+        // Add JsonStringEnumConverter for string-based enum serialization/deserialization
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));

@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Pet.Datas;
+using System.ComponentModel.DataAnnotations;
 
 namespace Pet.Dtos
 {
     public class UpdateShippingDto
     {
-        public string? Name { get; set; }
+        public ShippingMethod? ShippingMethod { get; set; }
         public decimal? Price { get; set; }
     }
 }

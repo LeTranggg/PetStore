@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Pet.Datas;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Pet.Models
 {
@@ -8,7 +9,7 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ShippingMethod ShippingMethod { get; set; }
         [Required]
         public decimal Price { get; set; }

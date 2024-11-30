@@ -272,8 +272,9 @@ namespace Pet.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OrderStatus")
-                        .HasColumnType("int");
+                    b.Property<string>("OrderStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
@@ -518,7 +519,7 @@ namespace Pet.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "a9ef859f-44cc-4cae-847a-25231152817e",
+                            ConcurrencyStamp = "67a48573-7ce3-4e34-a40c-fc68668f763d",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -535,8 +536,9 @@ namespace Pet.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ShippingMethod")
-                        .HasColumnType("int");
+                    b.Property<string>("ShippingMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -687,7 +689,7 @@ namespace Pet.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             Address = "Admin Address",
-                            ConcurrencyStamp = "ac2045c1-297f-4c1c-a2d0-893ac3780b11",
+                            ConcurrencyStamp = "132b3edd-33f8-4922-b631-a042f49fa975",
                             DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
@@ -698,11 +700,11 @@ namespace Pet.Migrations
                             LoyaltyCoin = 0m,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAECrrGz4JuNQy0fR+mMA0eePbnIXh+K0zexWjfvM9DRL76F9+HD4dFd184IPPMCndAA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEIqu32RfdiL05jpCF6n2mL4WRbqfyRfQZDLkbyvznSfOO6ucqNCpsrymtMtTJcI//A==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = false,
                             RoleId = 1,
-                            SecurityStamp = "e2a8a6fb-c798-44a5-93dd-0c9ee373da13",
+                            SecurityStamp = "331c76ec-ca34-418d-afa2-3d7d449d3e70",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });

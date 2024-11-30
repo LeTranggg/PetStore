@@ -118,6 +118,12 @@ namespace Pet.Datas
 
             // Order
             modelBuilder.Entity<Order>()
+                .Property(s => s.OrderStatus)
+                .HasConversion(
+                    v => v.ToString(), // Store OrderStatus as string in the database
+                    v => (OrderStatus)Enum.Parse(typeof(OrderStatus), v));
+
+            modelBuilder.Entity<Order>()
                 .HasMany(o => o.OrderDetails)
                 .WithOne(od => od.Order)
                 .HasForeignKey(od => od.OrderId)
@@ -131,6 +137,12 @@ namespace Pet.Datas
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Shipping
+            modelBuilder.Entity<Shipping>()
+                .Property(s => s.ShippingMethod)
+                .HasConversion(
+                    v => v.ToString(), // Store ShippingMethod as string in the database
+                    v => (ShippingMethod)Enum.Parse(typeof(ShippingMethod), v));
+
             modelBuilder.Entity<Shipping>()
                 .HasMany(s => s.Orders)
                 .WithOne(o => o.Shipping)

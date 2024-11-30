@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Pet.Datas;
+using System.Text.Json.Serialization;
 
 namespace Pet.Models
 {
@@ -17,7 +18,7 @@ namespace Pet.Models
         public string? RecipientPhone { get; set; }
         [Required]
         public decimal Price { get; set; }
-        [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public OrderStatus OrderStatus { get; set; }
         public string? Reason { get; set; }
 

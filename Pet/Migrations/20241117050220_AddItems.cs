@@ -58,7 +58,7 @@ namespace Pet.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ShippingMethod = table.Column<int>(type: "int", nullable: false),
+                    ShippingMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -290,7 +290,7 @@ namespace Pet.Migrations
                     RecipientName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RecipientPhone = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    OrderStatus = table.Column<int>(type: "int", nullable: false),
+                    OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ShippingId = table.Column<int>(type: "int", nullable: false),
@@ -503,12 +503,12 @@ namespace Pet.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { 1, "a9ef859f-44cc-4cae-847a-25231152817e", "Admin", "ADMIN" });
+                values: new object[] { 1, "67a48573-7ce3-4e34-a40c-fc68668f763d", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "IsBlock", "LastName", "LockoutEnabled", "LockoutEnd", "LoyaltyCoin", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Photo", "Reason", "RoleId", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { 1, 0, "Admin Address", "ac2045c1-297f-4c1c-a2d0-893ac3780b11", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAECrrGz4JuNQy0fR+mMA0eePbnIXh+K0zexWjfvM9DRL76F9+HD4dFd184IPPMCndAA==", "1234567890", false, null, null, 1, "e2a8a6fb-c798-44a5-93dd-0c9ee373da13", false, "admin" });
+                values: new object[] { 1, 0, "Admin Address", "132b3edd-33f8-4922-b631-a042f49fa975", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEIqu32RfdiL05jpCF6n2mL4WRbqfyRfQZDLkbyvznSfOO6ucqNCpsrymtMtTJcI//A==", "1234567890", false, null, null, 1, "331c76ec-ca34-418d-afa2-3d7d449d3e70", false, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
