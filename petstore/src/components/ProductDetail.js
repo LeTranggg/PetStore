@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../utils/Axios";
 import { Card } from "react-bootstrap";
 
 function ProductDetail() {
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [selectedItems, setSelectedItems] = useState({});
   const { productId } = useParams();
+  const isAuthenticated = localStorage.getItem("token") !== null;
+  const userRole = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")).role : null;
 
   useEffect(() => {
     const fetchProductDetail = async () => {
@@ -35,39 +38,56 @@ function ProductDetail() {
   };
 
   const addToCart = async () => {
-  try {
-    const items = Object.entries(selectedItems)
-      .filter(([_, quantity]) => quantity > 0)
-      .map(([classificationId, quantity]) => ({
-        classificationId: parseInt(classificationId),
-        quantity: parseInt(quantity)
-      }));
-
-    // Only send request if there are items to add
-    if (items.length === 0) {
+    // If user is not authenticated, redirect to login
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          message: 'Please sign in to add items to cart',
+          redirectTo: `/products/product-detail/${productId}`
+        }
+      });
       return;
     }
 
-    // Send the items array directly
-    await axios.post('/cart', items);
-
-    alert('Items added to cart successfully!');
-    // Reset quantities
-    const reset = {};
-    Object.keys(selectedItems).forEach(key => {
-      reset[key] = 0;
-    });
-    setSelectedItems(reset);
-  } catch (error) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      alert(`Error adding items to cart: ${error.response.data.message || 'Unknown error'}`);
-    } else {
-      alert('Error adding items to cart');
-      console.error('Error adding to cart:', error);
+    // If user is not a customer, prevent adding to cart
+    if (userRole !== 'Customer') {
+      alert('Only customers can add items to cart');
+      return;
     }
-  }
-};
+
+    try {
+      const items = Object.entries(selectedItems)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([classificationId, quantity]) => ({
+          classificationId: parseInt(classificationId),
+          quantity: parseInt(quantity)
+        }));
+
+      // Only send request if there are items to add
+      if (items.length === 0) {
+        return;
+      }
+
+      // Send the items array directly
+      await axios.post('/cart', items);
+
+      alert('Items added to cart successfully!');
+      // Reset quantities
+      const reset = {};
+      Object.keys(selectedItems).forEach(key => {
+        reset[key] = 0;
+      });
+      setSelectedItems(reset);
+    } catch (error) {
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        alert(`Error adding items to cart: ${error.response.data.message || 'Unknown error'}`);
+      } else {
+        alert('Error adding items to cart');
+        console.error('Error adding to cart:', error);
+      }
+    }
+  };
 
   if (!product) return <div>Loading...</div>;
 

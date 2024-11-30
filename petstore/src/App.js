@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import CreateCategory from "./components/CategoryManagement/Create";
 import CategoryIndex from "./components/CategoryManagement/Index";
-import UpdateCategory from "./components/CategoryManagement/Update";
 import CreateClassification from "./components/ClassificationManagement/Create";
 import ClassificationIndex from "./components/ClassificationManagement/Index";
 import UpdateClassification from "./components/ClassificationManagement/Update";
@@ -17,12 +15,8 @@ import CreateProduct from "./components/ProductManagement/Create";
 import ProductIndex from "./components/ProductManagement/Index";
 import UpdateProduct from "./components/ProductManagement/Update";
 import ProductDetail from "./components/ProductDetail";
-import CreateRole from "./components/RoleManagement/Create";
 import RoleIndex from "./components/RoleManagement/Index";
-import UpdateRole from "./components/RoleManagement/Update";
-import CreateShipping from "./components/ShippingManagement/Create";
 import ShippingIndex from "./components/ShippingManagement/Index";
-import UpdateShipping from "./components/ShippingManagement/Update";
 import CreateSuppiler from "./components/SupplierManagement/Create";
 import SupplierIndex from "./components/SupplierManagement/Index";
 import UpdateSupplier from "./components/SupplierManagement/Update";
@@ -154,14 +148,6 @@ function App() {
             path="/roles"
             element={isAuthenticated && role === "Admin" ? <RoleIndex /> : <Navigate to="/" replace/>}
           />
-          <Route
-            path="/roles/create"
-            element={isAuthenticated && role === "Admin" ? <CreateRole /> : <Navigate to="/roles" replace/>}
-          />
-          <Route
-            path="/roles/update/:roleId"
-            element={isAuthenticated && role === "Admin" ? <UpdateRole /> : <Navigate to="/roles" replace/>}
-          />
 
           {/* Trang quản lý users */}
           <Route
@@ -181,14 +167,6 @@ function App() {
           <Route
             path="/categories"
             element={isAuthenticated && role === "Admin" ? <CategoryIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/categories/create"
-            element={isAuthenticated && role === "Admin" ? <CreateCategory /> : <Navigate to="/categories" replace/>}
-          />
-          <Route
-            path="/categories/update/:categoryId"
-            element={isAuthenticated && role === "Admin" ? <UpdateCategory /> : <Navigate to="/categories" replace/>}
           />
 
           {/* Trang quản lý suppliers */}
@@ -222,7 +200,7 @@ function App() {
           {/* Trang products chi tiết*/}
           <Route
             path="/products/product-detail/:productId"
-            element={isAuthenticated && role === "Customer" ? <ProductDetail /> : <Navigate to="/" replace/>}
+            element={!isAuthenticated || role === "Customer" ? <ProductDetail /> : <Navigate to="/" replace/>}
           />
 
           {/* Trang quản lý classifications */}
@@ -243,14 +221,6 @@ function App() {
           <Route
             path="/shippings"
             element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/shippings/create"
-            element={isAuthenticated && role === "Admin" ? <CreateShipping /> : <Navigate to="/shippings" replace/>}
-          />
-          <Route
-            path="/shippings/update/:shippingId"
-            element={isAuthenticated && role === "Admin" ? <UpdateShipping /> : <Navigate to="/shippings" replace/>}
           />
 
           {/* Trang quản lý cart */}
