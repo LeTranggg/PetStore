@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Pet.Dtos;
 using Pet.Models;
 using Pet.Repositories.IRepositories;
 using Pet.Services.IServices;
+using System.Text;
 
 namespace Pet.Controllers
 {
@@ -16,14 +18,12 @@ namespace Pet.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IEmailService _emailService;
-        private readonly IConfiguration _configuration;
 
-        public UserController(IUnitOfWork unitOfWork, IPasswordHasher<User> passwordHasher, IEmailService emailService, IConfiguration configuration)
+        public UserController(IUnitOfWork unitOfWork, IPasswordHasher<User> passwordHasher, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = passwordHasher;
             _emailService = emailService;
-            _configuration = configuration;
         }
 
         [HttpGet]
@@ -71,26 +71,25 @@ namespace Pet.Controllers
                 PhoneNumber = createUserDto.PhoneNumber,
                 DateOfBirth = createUserDto.DateOfBirth,
                 RoleId = role.Id,
-                EmailConfirmed = false,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                IsBlock = false
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, createUserDto.Password);
 
             await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.SaveAsync(); // Lưu User để lấy ID
+
+            // Tạo cart cho user
+            var cart = new Cart
+            {
+                UserId = user.Id,
+                CartItems = new List<CartItem>()
+            };
+            await _unitOfWork.CartRepository.AddAsync(cart);
             await _unitOfWork.SaveAsync();
 
-            // Generate confirmation token and send email
-            var token = user.SecurityStamp;
-            var backendUrl = _configuration["Backend:Url"]; // Add this to AppSettings.json
-            var frontendUrl = _configuration["Frontend:Url"];
-            var confirmationUrl = $"{backendUrl}/api/user/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
-
-            await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
-                $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
-
-            return Ok("Đăng ký tài khoản thành công! Vui lòng kiểm tra email để xác nhận.");
+            return Ok("Đăng ký tài khoản thành công");
         }
 
         [HttpPut("{id}")]
@@ -109,16 +108,6 @@ namespace Pet.Controllers
             if (!string.IsNullOrEmpty(updatedUserDto.Email) && user.Email != updatedUserDto.Email)
             {
                 user.Email = updatedUserDto.Email;
-                user.EmailConfirmed = false;
-
-                // Send confirmation email
-                var token = user.SecurityStamp;
-                var backendUrl = _configuration["Backend:Url"];
-                var frontendUrl = _configuration["Frontend:Url"];
-                var confirmationUrl = $"{backendUrl}/api/user/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
-
-                await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
-                    $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
             }
 
             if (!string.IsNullOrEmpty(updatedUserDto.Address))
@@ -158,39 +147,27 @@ namespace Pet.Controllers
             return Ok("Cập nhật tài khoản thành công.");
         }
 
-        [HttpGet("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string token, [FromQuery] string email, [FromQuery] string redirectUrl)
-        {
-            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-            if (user == null) return NotFound("Người dùng không tồn tại.");
-            if (user.EmailConfirmed) return BadRequest("Email đã được xác nhận trước đó.");
-
-            if (token != user.SecurityStamp)
-                return BadRequest("Token không hợp lệ.");
-
-            user.EmailConfirmed = true;
-            _unitOfWork.UserRepository.UpdateAsync(user);
-            await _unitOfWork.SaveAsync();
-
-            // Redirect to frontend after email confirmation
-            if (!string.IsNullOrEmpty(redirectUrl))
-            {
-                return Redirect($"{redirectUrl}/login"); // Adjust this path to your frontend's login page
-            }
-
-            return Ok("Email đã được xác nhận thành công!");
-        }
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound("Không tìm thấy người dùng.");
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+                if (user == null) return NotFound("Không tìm thấy người dùng.");
 
-            _unitOfWork.UserRepository.DeleteAsync(user);
-            await _unitOfWork.SaveAsync();
+                // Xóa User và các quan hệ liên quan
+                _unitOfWork.UserRepository.DeleteAsync(user);
+                await _unitOfWork.SaveAsync();
 
-            return Ok("Xóa tài khoản thành công.");
+                return Ok("Xóa tài khoản thành công.");
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi (tuỳ chọn)
+                Console.WriteLine($"Lỗi khi xóa User: {ex.Message}");
+                return StatusCode(500, "Đã xảy ra lỗi trong quá trình xóa tài khoản.");
+            }
         }
+
     }
 }

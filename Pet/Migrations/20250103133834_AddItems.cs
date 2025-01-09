@@ -44,7 +44,6 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ByCash = table.Column<bool>(type: "bit", nullable: false),
-                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsSuccessfull = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -73,14 +72,27 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Photo = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Suppliers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Values",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Values", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -111,15 +123,15 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LoyaltyCoin = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Photo = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsBlock = table.Column<bool>(type: "bit", nullable: false),
+                    IsReport = table.Column<bool>(type: "bit", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RoleId = table.Column<int>(type: "int", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -151,9 +163,10 @@ namespace Pet.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     SupplierId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -260,6 +273,29 @@ namespace Pet.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Blogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Blogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Blogs_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Carts",
                 columns: table => new
                 {
@@ -275,6 +311,34 @@ namespace Pet.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MyPets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Species = table.Column<bool>(type: "bit", nullable: false),
+                    Age = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Gender = table.Column<bool>(type: "bit", nullable: false),
+                    Weight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Leight = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Girth = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Neck = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MyPets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MyPets_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -286,9 +350,9 @@ namespace Pet.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CoinEarned = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RecipientName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RecipientPhone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecipientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecipientPhone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     OrderStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -320,19 +384,41 @@ namespace Pet.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsReport = table.Column<bool>(type: "bit", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Classifications",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Value = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Weight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Height = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Length = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Width = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProductId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -347,28 +433,25 @@ namespace Pet.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Reviews",
+                name: "CategoryBlogs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    BlogId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.PrimaryKey("PK_CategoryBlogs", x => new { x.CategoryId, x.BlogId });
                     table.ForeignKey(
-                        name: "FK_Reviews_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
+                        name: "FK_CategoryBlogs_Blogs_BlogId",
+                        column: x => x.BlogId,
+                        principalTable: "Blogs",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Reviews_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
+                        name: "FK_CategoryBlogs_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -394,27 +477,6 @@ namespace Pet.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_CartItems_Classifications_ClassificationId",
-                        column: x => x.ClassificationId,
-                        principalTable: "Classifications",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ClassificationMedias",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MediaUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsImage = table.Column<bool>(type: "bit", nullable: false),
-                    ClassificationId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ClassificationMedias", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ClassificationMedias_Classifications_ClassificationId",
                         column: x => x.ClassificationId,
                         principalTable: "Classifications",
                         principalColumn: "Id",
@@ -456,9 +518,8 @@ namespace Pet.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Rating = table.Column<byte>(type: "tinyint", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsReport = table.Column<bool>(type: "bit", nullable: false),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReviewId = table.Column<int>(type: "int", nullable: false),
                     ClassificationId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -480,22 +541,25 @@ namespace Pet.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ReviewMedias",
+                name: "ValuesClassifications",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MediaUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsImage = table.Column<bool>(type: "bit", nullable: false),
-                    ReviewId = table.Column<int>(type: "int", nullable: false)
+                    ValueId = table.Column<int>(type: "int", nullable: false),
+                    ClassificationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReviewMedias", x => x.Id);
+                    table.PrimaryKey("PK_ValuesClassifications", x => new { x.ValueId, x.ClassificationId });
                     table.ForeignKey(
-                        name: "FK_ReviewMedias_Reviews_ReviewId",
-                        column: x => x.ReviewId,
-                        principalTable: "Reviews",
+                        name: "FK_ValuesClassifications_Classifications_ClassificationId",
+                        column: x => x.ClassificationId,
+                        principalTable: "Classifications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ValuesClassifications_Values_ValueId",
+                        column: x => x.ValueId,
+                        principalTable: "Values",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -503,12 +567,17 @@ namespace Pet.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { 1, "67a48573-7ce3-4e34-a40c-fc68668f763d", "Admin", "ADMIN" });
+                values: new object[] { 1, "b7ce0864-b64b-47d5-b50a-370198375768", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "IsBlock", "LastName", "LockoutEnabled", "LockoutEnd", "LoyaltyCoin", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Photo", "Reason", "RoleId", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { 1, 0, "Admin Address", "132b3edd-33f8-4922-b631-a042f49fa975", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEIqu32RfdiL05jpCF6n2mL4WRbqfyRfQZDLkbyvznSfOO6ucqNCpsrymtMtTJcI//A==", "1234567890", false, null, null, 1, "331c76ec-ca34-418d-afa2-3d7d449d3e70", false, "admin" });
+                columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "ImageUrl", "IsReport", "LastName", "LockoutEnabled", "LockoutEnd", "LoyaltyCoin", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Reason", "RoleId", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                values: new object[] { 1, 0, "Admin Address", "88ba1039-03b6-4bf7-b35b-654411a88f3a", new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@example.com", true, "Admin", null, false, "User", false, null, 0m, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAEAACcQAAAAEKpAPxQrY9mtrwcsKtCVq/eqyXdKhhIlWT9NYFfmyMHrRbFGSUhfg0C5I7ETum+7wA==", "1234567890", false, null, 1, "a0707314-450c-4aed-8649-664743803ec5", false, "admin" });
+
+            migrationBuilder.InsertData(
+                table: "Carts",
+                columns: new[] { "Id", "UserId" },
+                values: new object[] { 1, 1 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -555,6 +624,11 @@ namespace Pet.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Blogs_UserId",
+                table: "Blogs",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CartItems_CartId",
                 table: "CartItems",
                 column: "CartId");
@@ -571,14 +645,19 @@ namespace Pet.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassificationMedias_ClassificationId",
-                table: "ClassificationMedias",
-                column: "ClassificationId");
+                name: "IX_CategoryBlogs_BlogId",
+                table: "CategoryBlogs",
+                column: "BlogId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Classifications_ProductId",
                 table: "Classifications",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MyPets_UserId",
+                table: "MyPets",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_ClassificationId",
@@ -627,19 +706,14 @@ namespace Pet.Migrations
                 column: "ReviewId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReviewMedias_ReviewId",
-                table: "ReviewMedias",
-                column: "ReviewId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Reviews_ProductId",
-                table: "Reviews",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_UserId",
                 table: "Reviews",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ValuesClassifications_ClassificationId",
+                table: "ValuesClassifications",
+                column: "ClassificationId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -663,7 +737,10 @@ namespace Pet.Migrations
                 name: "CartItems");
 
             migrationBuilder.DropTable(
-                name: "ClassificationMedias");
+                name: "CategoryBlogs");
+
+            migrationBuilder.DropTable(
+                name: "MyPets");
 
             migrationBuilder.DropTable(
                 name: "OrderDetails");
@@ -672,19 +749,25 @@ namespace Pet.Migrations
                 name: "ReviewDetails");
 
             migrationBuilder.DropTable(
-                name: "ReviewMedias");
+                name: "ValuesClassifications");
 
             migrationBuilder.DropTable(
                 name: "Carts");
 
             migrationBuilder.DropTable(
+                name: "Blogs");
+
+            migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "Classifications");
 
             migrationBuilder.DropTable(
-                name: "Reviews");
+                name: "Values");
 
             migrationBuilder.DropTable(
                 name: "Payments");

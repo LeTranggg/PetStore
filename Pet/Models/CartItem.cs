@@ -7,7 +7,7 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required, Range(0, 100)]
+        [Required]
         public int Quantity { get; set; }
 
         public int CartId { get; set; }

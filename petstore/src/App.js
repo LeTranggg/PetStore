@@ -26,9 +26,13 @@ import UpdateUser from "./components/UserManagement/Update";
 import CartItem from "./components/CartManagement/CartItem";
 import CartIndex from "./components/CartManagement/Index";
 import UpdateCart from "./components/CartManagement/Update";
+import OrderHistory from "./components/OrderManagement/OrderHistory";
+import OrderCreate from "./components/OrderManagement/Create";
+import OrderIndex from "./components/OrderManagement/Index";
 import Admin from './screens/Admin';
 import Customer from './screens/Customer';
 import Guest from './screens/Guest';
+import "./App.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
@@ -220,7 +224,7 @@ function App() {
           {/* Trang quản lý shippings */}
           <Route
             path="/shippings"
-            element={isAuthenticated && role === "Admin" ? <ShippingIndex /> : <Navigate to="/" replace/>}
+            element={isAuthenticated && role === "Admin" && "Customer" ? <ShippingIndex /> : <Navigate to="/" replace/>}
           />
 
           {/* Trang quản lý cart */}
@@ -235,6 +239,19 @@ function App() {
           <Route
             path="/cart/update/:cartItemId"
             element={isAuthenticated && role === "Customer" ? <UpdateCart /> : <Navigate to="/cart" replace/>}
+          />
+
+          <Route
+            path="/orders"
+            element={isAuthenticated && role === "Admin" ? <OrderIndex /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/orders/create"
+            element={isAuthenticated && role === "Customer" ? <OrderCreate /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/orders/history"
+            element={isAuthenticated && role === "Customer" ? <OrderHistory /> : <Navigate to="/" replace />}
           />
 
           {/* Trang profile */}

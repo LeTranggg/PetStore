@@ -9,10 +9,8 @@ namespace Pet.Models
         public int Id { get; set; }
         [Required]
         public byte Rating { get; set; }
-        [MaxLength(500)]
         public string? Comment { get; set; }
-        public bool IsReport { get; set; } = false;
-        public string? Reason { get; set; }
+        public string? ImageUrl { get; set; }
 
         public int ReviewId { get; set; }
         [ForeignKey("ReviewId")]

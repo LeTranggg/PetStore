@@ -18,16 +18,20 @@ namespace Pet.Datas
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Classification> Classifications { get; set; }
-        public DbSet<ClassificationMedia> ClassificationMedias { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewDetail> ReviewDetails { get; set; }
-        public DbSet<ReviewMedia> ReviewMedias { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Shipping> Shippings { get; set; }
+        public DbSet<MyPet> MyPets { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<Value> Values { get; set; }
+        public DbSet<ValueClassification> ValuesClassifications { get; set; }
+        public DbSet<CategoryBlog> CategoryBlogs { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,12 +59,6 @@ namespace Pet.Datas
                 .HasForeignKey(c => c.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.Reviews)
-                .WithOne(r => r.Product)
-                .HasForeignKey(r => r.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Classification
             modelBuilder.Entity<Classification>()
                 .HasMany(c => c.OrderDetails)
@@ -80,12 +78,6 @@ namespace Pet.Datas
                 .HasForeignKey(ci => ci.ClassificationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Classification>()
-                .HasMany(c => c.ClassificationMedias)
-                .WithOne(cm => cm.Classification)
-                .HasForeignKey(cm => cm.ClassificationId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // User
             modelBuilder.Entity<User>()
                 .Property(u => u.DateOfBirth)
@@ -95,7 +87,7 @@ namespace Pet.Datas
                 .HasOne(u => u.Cart)
                 .WithOne(c => c.User)
                 .HasForeignKey<Cart>(c => c.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Orders)
@@ -106,6 +98,18 @@ namespace Pet.Datas
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Reviews)
                 .WithOne(r => r.User)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.MyPets)
+                .WithOne(u => u.User)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Blogs)
+                .WithOne(b => b.User)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -156,18 +160,40 @@ namespace Pet.Datas
                 .HasForeignKey(rd => rd.ReviewId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Review>()
-                .HasMany(r => r.ReviewMedias)
-                .WithOne(rm => rm.Review)
-                .HasForeignKey(rm => rm.ReviewId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Role
             modelBuilder.Entity<Role>()
                 .HasMany(r => r.Users)
                 .WithOne(u => u.Role)
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // CategoryBlog
+            modelBuilder.Entity<CategoryBlog>()
+                .HasKey(cb => new { cb.CategoryId, cb.BlogId });
+
+            modelBuilder.Entity<CategoryBlog>()
+                .HasOne(cb => cb.Category)
+                .WithMany(c => c.CategoryBlogs)
+                .HasForeignKey(cb => cb.CategoryId);
+
+            modelBuilder.Entity<CategoryBlog>()
+                .HasOne(cb => cb.Blog)
+                .WithMany(b => b.CategoryBlogs)
+                .HasForeignKey(cb => cb.BlogId);
+
+            //ValueClassification
+            modelBuilder.Entity<ValueClassification>()
+                .HasKey(vc => new { vc.ValueId, vc.ClassificationId });
+
+            modelBuilder.Entity<ValueClassification>()
+                .HasOne(vc => vc.Value)
+                .WithMany(v => v.ValueClassifications)
+                .HasForeignKey(vc => vc.ValueId);
+
+            modelBuilder.Entity<ValueClassification>()
+                .HasOne(vc => vc.Classification)
+                .WithMany(c => c.ValueClassifications)
+                .HasForeignKey(vc => vc.ClassificationId);
 
             // Seed Admin Role
             var adminRoleId = 1;
@@ -196,17 +222,24 @@ namespace Pet.Datas
                 Address = "Admin Address",
                 PhoneNumber = "1234567890",
                 RoleId = adminRoleId,
-                IsBlock = false,
-                LoyaltyCoin = 0
+                LoyaltyCoin = 0,
+                IsReport = false
             };
 
-            // Set PasswordHash for the Admin User
+            // Hash the password
             adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@123");
+
+            // Seed Admin Cart
+            var adminCart = new Cart
+            {
+                Id = 1, // ID cố định
+                UserId = adminUserId // Liên kết với Admin User
+            };
 
             // Seeding Data
             modelBuilder.Entity<Role>().HasData(adminRole);
             modelBuilder.Entity<User>().HasData(adminUser);
-
+            modelBuilder.Entity<Cart>().HasData(adminCart);
         }
     }
 }

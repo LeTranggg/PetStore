@@ -8,15 +8,15 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required, EmailAddress(ErrorMessage = "Invalid email format.")]
+        [Required]
         public string Email { get; set; }
-        [Required, MaxLength(50, ErrorMessage = "Name cannot exceed 50 characters.")]
+        [Required]
         public string Name { get; set; }
-        [Required, MaxLength(15, ErrorMessage = "Phone number cannot exceed 15 characters.")]
+        [Required]
         public string PhoneNumber { get; set; }
         [Required]
         public string Address { get; set; }
-        public string? Photo { get; set; }
+        public string? ImageUrl { get; set; }
 
         [ValidateNever]
         public ICollection<Product> Products { get; set; }

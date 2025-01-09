@@ -4,8 +4,10 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   return (
     <tr key={item.id}>
       <td>{item.classification.product.name}</td>
+      <td>${item.classification.product.price}</td>
       <td>{item.classification.name}</td>
       <td>${item.classification.price}</td>
+      <td>${(item.classification.price + item.classification.product.price) * item.quantity}</td>
       <td>
         <input
           type="number"
@@ -15,7 +17,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           className="w-20 p-1 border rounded"
         />
       </td>
-      <td>${item.classification.price * item.quantity}</td>
       <td>
         <button
           onClick={() => onRemove(item.id)}

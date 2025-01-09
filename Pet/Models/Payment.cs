@@ -8,10 +8,8 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        public bool ByCash { get; set; }
-        [Required]
-        public DateTime DateCreated { get; set; } = DateTime.Now;
-        public bool IsSuccessfull { get; set; }
+        public bool ByCash { get; set; } = true;
+        public bool IsSuccessfull { get; set; } = false;
 
         [ValidateNever]
         public Order Order { get; set; }

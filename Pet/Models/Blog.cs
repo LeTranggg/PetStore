@@ -4,15 +4,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pet.Models
 {
-    public class Category
+    public class Blog
     {
         [Key]
         public int Id { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.Now;
         [Required]
-        public string Name { get; set; }
+        public string Title { get; set; }
+        [Required]
+        public string Content { get; set; }
+        public string? ImageUrl { get; set; }
 
-        [ValidateNever]
-        public ICollection<Product> Products { get; set; }
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+
         [ValidateNever]
         public ICollection<CategoryBlog> CategoryBlogs { get; set; }
     }

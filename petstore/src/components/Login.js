@@ -12,10 +12,6 @@ function Login({ setAuth, setRole, setUser }) {
   const [loading, setLoading] = useState(false); // Thêm trạng thái loading
   const [message, setMessage] = useState(location.state?.message || null);
 
-  const handleRegisterClick = () => {
-    navigate("/register"); // Điều hướng tới trang đăng ký
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent form from reloading the page
     setLoading(true); // Hiển thị trạng thái loading
@@ -67,50 +63,60 @@ function Login({ setAuth, setRole, setUser }) {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        {/* Hiển thị loading khi đang chờ response */}
-        {loading ? (
-          <p>Logging in...</p>
-        ) : (
-          <>
-            <div>
-              <label>Email:</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label>Password:</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit">Login</button>
-            <button type="button" onClick={() => handleRegisterClick()}>Register</button>
-            <div>
-              <Link to="/forgot-pass">Quên mật khẩu</Link>
-            </div>
-          </>
-        )}
-      </form>
-      {error && <p>{error}</p>}
-
+    <div className="body-login">
+      <div className="login-container">
+        <h2>Log In</h2>
+        <form onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <div className="password-container">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button className="login-button" type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "LOG IN"}
+          </button>
+        </form>
+        <div className="or-separator">
+          <span>OR</span>
+        </div>
+        <button className="google-login">
+          <img
+            src={`${process.env.PUBLIC_URL}/GoogleLogo.svg.webp`}
+            alt="Google logo"
+            className="google-logo"
+          />
+          Login with Google
+        </button>
+        <div className="login-footer">
+          <div>
+            <Link to="/forgot-pass">Forgot Password?</Link>
+          </div>
+          <div>
+            Not a member? <Link to="/register">Register</Link>
+          </div>
+        </div>
+        {error && <p className="error">{error}</p>}
+      </div>
       <ToastContainer position="top-end" className="p-3">
         {message && (
           <Toast
-            bg={location.state?.type === 'success' ? 'success' : 'danger'}
+            bg={location.state?.type === "success" ? "success" : "danger"}
             onClose={() => setMessage(null)}
             show={!!message}
             delay={3000}
-            autohide>
+            autohide
+          >
             <Toast.Body>{message}</Toast.Body>
           </Toast>
         )}

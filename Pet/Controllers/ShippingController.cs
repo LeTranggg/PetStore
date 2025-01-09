@@ -8,7 +8,6 @@ using Pet.Repositories.IRepositories;
 
 namespace Pet.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ShippingController : ControllerBase
@@ -27,6 +26,7 @@ namespace Pet.Controllers
             return Ok(Shippings);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetShipping(int id)
         {
@@ -35,6 +35,7 @@ namespace Pet.Controllers
             return Ok(Shipping);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateShipping([FromBody] Shipping shipping)
         {
@@ -51,6 +52,7 @@ namespace Pet.Controllers
             return CreatedAtAction(nameof(GetShippings), new { id = shipping.Id }, shipping);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateShipping(int id, [FromBody] UpdateShippingDto updateShippingDto)
         {
@@ -84,6 +86,7 @@ namespace Pet.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteShipping(int id)
         {

@@ -21,5 +21,12 @@ namespace Pet.Repositories
                 .ThenInclude(c => c.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
+
+        public async Task<IEnumerable<Cart>> GetCartsByUserIdAsync(int userId)
+        {
+            return await _context.Set<Cart>()
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+        }
     }
 }

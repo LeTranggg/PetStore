@@ -8,19 +8,15 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
         public DateTime DateCreated { get; set; } = DateTime.Now;
+        public bool IsReport { get; set; } = false;
+        public string? Reason { get; set; }
 
-        public int ProductId { get; set; }
-        [ForeignKey("ProductId")]
-        public Product Product { get; set; }
         public int UserId { get; set; }
         [ForeignKey("UserId")]
         public User User { get; set; }
 
         [ValidateNever]
         public ICollection<ReviewDetail> ReviewDetails { get; set; }
-        [ValidateNever]
-        public ICollection<ReviewMedia> ReviewMedias { get; set; }
     }
 }

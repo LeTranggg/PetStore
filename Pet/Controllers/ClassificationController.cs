@@ -46,7 +46,6 @@ namespace Pet.Controllers
 
             var classification = new Classification
             {
-                Value = createClassificationDto.Value,
                 Name = createClassificationDto.Name,
                 Price = createClassificationDto.Price,
                 Quantity = createClassificationDto.Quantity,
@@ -70,8 +69,6 @@ namespace Pet.Controllers
             if (Classification == null) return NotFound("Không tìm thấy người dùng.");
 
             // Only update fields if they are provided in the request
-            if (!string.IsNullOrEmpty(updatedClassificationDto.Value))
-                Classification.Value = updatedClassificationDto.Value;
 
             if (!string.IsNullOrEmpty(updatedClassificationDto.Name))
                 Classification.Name = updatedClassificationDto.Name;

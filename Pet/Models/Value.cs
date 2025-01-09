@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pet.Models
 {
-    public class Category
+    public class Value
     {
         [Key]
         public int Id { get; set; }
@@ -12,8 +11,6 @@ namespace Pet.Models
         public string Name { get; set; }
 
         [ValidateNever]
-        public ICollection<Product> Products { get; set; }
-        [ValidateNever]
-        public ICollection<CategoryBlog> CategoryBlogs { get; set; }
+        public ICollection<ValueClassification> ValueClassifications { get; set; }
     }
 }

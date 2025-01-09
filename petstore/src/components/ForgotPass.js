@@ -24,7 +24,8 @@ const ForgotPass = () => {
   };
 
   return (
-    <div>
+    <div className="body-login">
+      <div className="login-container">
       <h2>Quên mật khẩu</h2>
         <form onSubmit={handleSubmit}>
           <div>
@@ -40,13 +41,14 @@ const ForgotPass = () => {
           {status.message}
 
           <div>
-            <button
+            <button className="login-button"
               type="submit"
               disabled={loading}>
               {loading ? 'Đang gửi...' : 'Gửi link đặt lại mật khẩu'}
             </button>
-
-            <button
+          </div>
+          <div>
+            <button className="login-button"
               type="button"
               variant="outline"
               onClick={() => navigate('/login')}>
@@ -54,6 +56,7 @@ const ForgotPass = () => {
             </button>
           </div>
         </form>
+      </div>
     </div>
   );
 }

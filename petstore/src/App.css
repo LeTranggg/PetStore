@@ -38,6 +38,239 @@
   }
 }
 
+/* Style */
+h2 {
+  margin-bottom: 20px;
+}
+
+p {
+  margin-top: 20px;
+  font-size: 0.9em;
+}
+
+.body-g {
+  margin: 0;
+  padding-top: 120px;
+  /* Add padding to the top of the body to avoid overlap with the fixed header and nav */
+}
+
+/* NavBar */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  padding-left: 60px;
+  padding-right: 60px;
+  background-color: white;
+  position: fixed;
+  top: 0;
+  /* Position it at the top */
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  margin: 0 20px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.search-input {
+  border: 1px solid #F4F4F4;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 16px;
+  outline: none;
+  flex: 1;
+  min-width: 300px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.search-icon {
+  width: 30px;
+  height: 30px;
+  vertical-align: sub;
+}
+
+.search-wrapper:focus {
+  border-color: #12967A;
+  outline: none;
+}
+
+.link-container {
+  display: flex;
+  gap: 10px;
+  /* Add space between links */
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 30px;
+  padding-bottom: 20px;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+nav ul li {
+  margin: 0 15px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  color: #12967A;
+}
+
+.link-container-image {
+  display: flex;
+  gap: 60px;
+  padding-left: 60px;
+  padding-right: 60px;
+}
+
+.accessory-item {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.accessory-image {
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding-left: 20px;
+}
+
+.overlay h5 {
+  text-shadow: 2px 2px 5px #F4F4F4;
+  font-weight: bold;
+}
+
+.overlay button {
+  stroke-width: 1px;
+  stroke: #515359;
+  background: none;
+}
+
+.overlay button:hover {
+  background-color: #F2FFD8;
+}
+
+/* Product */
+.container-product {
+  background-color: #F4F4F4;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.product {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.card-list {
+  width: 250px;
+  height: 350px;
+  background-color: #F4F4F4;
+}
+
+.card-list:hover {
+  transform: scale(0.98);
+}
+
+.card-image {
+  width: 100%;
+  height: 220px;
+}
+
+.card-info {
+  font-weight: 600;
+  padding: 16px;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 50px;
+  background-color: #F2FFD8;
+}
+
+.map {
+  display: flex;
+}
+
+.map ul {
+  display: flex;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.map li {
+  margin: 0 15px;
+}
+
+.map ul li a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+.map ul li a:hover {
+  color: #12967A;
+}
+
 /* Ngăn cuộn nền khi modal được mở */
 body.modal-open {
   overflow: hidden;
@@ -58,7 +291,7 @@ body.modal-open {
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+  max-width: 650px;
   margin: auto;
   padding: 16px;
 }
@@ -71,4 +304,156 @@ body.modal-open {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.ta th{
+  text-align: center;
+}
+
+.ta td {
+  text-align: center;
+}
+
+/* General body styling for login/register page */
+.no-wrap {
+  display: inline;
+  white-space: nowrap;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  /* Adds spacing between columns */
+}
+
+.form-group {
+  width: 100%;
+}
+
+.form-group.col-md-6 {
+  width: 48%;
+}
+
+.body-login {
+  font-family: Arial, sans-serif;
+  background-color: #12967A;
+  /* Green background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.login-container {
+  background-color: #fff;
+  /* White background */
+  padding: 30px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  text-align: center;
+}
+
+.login-container h2 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #F4F4F4;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.password-container {
+  position: relative;
+}
+
+.password-container .toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #F4F4F4;
+}
+
+button.login-button {
+  width: 100%;
+  background-color: #12967A;
+  /* Primary green */
+  color: white;
+  padding: 10px;
+  font-size: 1em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button.login-button:hover {
+  background-color: #12967A;
+}
+
+.or-separator {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.or-separator::before,
+.or-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: #F4F4F4;
+}
+
+.or-separator span {
+  margin: 0 10px;
+  font-size: 0.9em;
+  color: #F4F4F4;
+}
+
+.google-login {
+  width: 100%;
+  background-color: #fff;
+  color: #555;
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-login img {
+  height: 20px;
+  margin-right: 8px;
+}
+
+.google-login:hover {
+  background-color: #F4F4F4;
+}
+
+.login-footer {
+  margin-top: 15px;
+  font-size: 0.9em;
+}
+
+.login-footer a {
+  color: #12967A;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
 }

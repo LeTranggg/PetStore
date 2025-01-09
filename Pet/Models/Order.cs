@@ -10,12 +10,15 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
         public DateTime DateCreated { get; set; } = DateTime.Now;
+        [Required]
         public decimal CoinEarned { get; set; }
-        public string? ShippingAddress { get; set; }
-        public string? RecipientName { get; set; }
-        public string? RecipientPhone { get; set; }
+        [Required]
+        public string ShippingAddress { get; set; }
+        [Required]
+        public string RecipientName { get; set; }
+        [Required]
+        public string RecipientPhone { get; set; }
         [Required]
         public decimal Price { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]

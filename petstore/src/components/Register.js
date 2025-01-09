@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "../utils/Axios";
 
 function Register({ onCreate }) {
@@ -38,7 +38,7 @@ function Register({ onCreate }) {
           onCreate(response.data);
         }
 
-        navigate("/login", { state: { message: "Đăng ký tài khoản thành công! Vui lòng kiểm tra email."}});
+        navigate("/login", { state: { message: "Đăng ký tài khoản thành công! Vui lòng kiểm tra email.", type: 'success'}});
       } else {
         // Nếu mã trạng thái không phải 2xx, coi như thất bại
         throw new Error("API failed but role might have been created.");
@@ -51,51 +51,107 @@ function Register({ onCreate }) {
           : JSON.stringify(error.response.data);
         setError(`Failed to create user: ${errorMessage}`);
       } else {
-        navigate("/login", { state: { message: "Không thể đăng ký tài khoản! Vui lòng thử lại." }});
+        navigate("/login", { state: { message: "Không thể đăng ký tài khoản! Vui lòng thử lại.", type: 'danger' }});
       }
     }
   };
 
   return (
-    <div>
-      <h2>Create User</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
+    <div className="body-login">
+      <div className="login-container">
+        <h2>Create User</h2>
+        <form onSubmit={handleSubmit}>
+          <div class="form-group">
+              <input type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required />
+          </div>
+          <div class="form-group">
+            <div className="password-container">
+              <input type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required />
+            </div>
+          </div>
+          <div class="form-group">
+              <div className="password-container">
+                <input type="password"
+                  name="passwordConfirmed"
+                  placeholder="Password confirmation"
+                  value={formData.passwordConfirmed}
+                  onChange={handleInputChange}
+                    required />
+              </div>
+            </div>
+          <div class="form-row">
+		          <div class="form-group col-md-6">
+                <input type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required />
+              </div>
+              <div class="form-group col-md-6">
+                <input type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required />
+              </div>
+	        </div>
+          <div class="form-group">
+              <input type="text"
+                name="address"
+                placeholder="Address"
+                value={formData.address}
+                onChange={handleInputChange}
+                required />
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+                <input type="text"
+                  name="phoneNumber"
+                  placeholder="Phone Number"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  required />
+            </div>
+            <div class="form-group col-md-6">
+                <input type="date"
+                  name="dateOfBirth"
+                  placeholder="Date of Birth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  required />
+            </div>
+          </div>
+          <button className="login-button" type="submit">Register</button>
+        </form>
+        <div className="or-separator">
+          <span>OR</span>
         </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
+        <button className="google-login">
+          <img
+            src={`${process.env.PUBLIC_URL}/GoogleLogo.svg.webp`}
+            alt="Google logo"
+            className="google-logo"
+          />
+          Google
+        </button>
+        <div className="login-footer">
+          Have an account? <Link to="/login">Login</Link>
         </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input type="password" name="passwordConfirmed" value={formData.passwordConfirmed} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>First Name:</label>
-          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Phone Number:</label>
-          <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Address:</label>
-          <input type="text" name="address" value={formData.address} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Date of Birth:</label>
-          <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} required />
-        </div>
-        <button type="submit">Create User</button>
-      </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </div>
     </div>
   );
 }

@@ -8,12 +8,12 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required, MaxLength(100)]
+        [Required]
         public string Name { get; set; }
-        [MaxLength(500)]
-        public string? Description { get; set; }
         [Required]
         public decimal Price { get; set; }
+        public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
 
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
@@ -24,7 +24,5 @@ namespace Pet.Models
 
         [ValidateNever]
         public ICollection<Classification> Classifications { get; set; }
-        [ValidateNever]
-        public ICollection<Review> Reviews { get; set; }
     }
 }

@@ -8,13 +8,11 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required, MaxLength(50)]
-        public string Value { get; set; }
-        [Required, MaxLength(50)]
+        [Required]
         public string Name { get; set; }
         [Required]
         public decimal Price { get; set; }
-        [Required, Range(0, 5000)]
+        [Required]
         public int Quantity { get; set; }
         [Required]
         public decimal Weight { get; set; }
@@ -24,6 +22,7 @@ namespace Pet.Models
         public decimal Length { get; set; }
         [Required]
         public decimal Width { get; set; }
+        public string? ImageUrl { get; set; }
 
         public int ProductId { get; set; }
         [ForeignKey("ProductId")]
@@ -36,6 +35,6 @@ namespace Pet.Models
         [ValidateNever]
         public ICollection<CartItem> CartItems { get; set; }
         [ValidateNever]
-        public ICollection<ClassificationMedia> ClassificationMedias { get; set; }
+        public ICollection<ValueClassification> ValueClassifications { get; set; }
     }
 }

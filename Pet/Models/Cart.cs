@@ -11,7 +11,7 @@ namespace Pet.Models
         [Required]
         public decimal Price
         {
-            get { return CartItems.Sum(ci => ci.Quantity * ci.Classification.Price); }
+            get { return CartItems.Sum(ci => ci.Quantity * (ci.Classification.Price + ci.Classification.Product.Price)); }
         }
 
         public int UserId { get; set; }

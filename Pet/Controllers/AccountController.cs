@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using NuGet.Protocol.Plugins;
 using Pet.Dtos;
 using Pet.Models;
@@ -10,6 +11,7 @@ using Pet.Services.IServices;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Web;
 
 namespace Pet.Controllers
 {
@@ -112,6 +114,7 @@ namespace Pet.Controllers
             var role = await _unitOfWork.RoleRepository.GetRoleByNameAsync("Customer");
             if (role == null) return BadRequest("Role không hợp lệ.");
 
+            // Tạo đối tượng User tạm thời
             var user = new User
             {
                 Email = registerDto.Email,
@@ -126,19 +129,17 @@ namespace Pet.Controllers
                 RoleId = role.Id,
                 EmailConfirmed = false,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                IsBlock = false
+                IsReport = false
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, registerDto.Password);
 
-            await _unitOfWork.UserRepository.AddAsync(user);
-            await _unitOfWork.SaveAsync();
+            // Tạo token chứa thông tin user
+            var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(user)));
 
-            // Generate confirmation token and send email
-            var token = user.SecurityStamp;
-            var backendUrl = _configuration["Backend:Url"]; // Add this to AppSettings.json
-            var frontendUrl = _configuration["Frontend:Url"];
-            var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
+            // Gửi email xác nhận
+            var backendUrl = _configuration["Backend:Url"];
+            var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={HttpUtility.UrlEncode(token)}";
 
             await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
                 $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
@@ -147,20 +148,39 @@ namespace Pet.Controllers
         }
 
         [HttpGet("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string token, [FromQuery] string email)
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
         {
-            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
-            if (user == null) return NotFound("Người dùng không tồn tại.");
-            if (user.EmailConfirmed) return BadRequest("Email đã được xác nhận trước đó.");
+            try
+            {
+                // Giải mã token
+                var tokenData = Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                var userData = JsonConvert.DeserializeObject<User>(tokenData);
 
-            if (token != user.SecurityStamp)
-                return BadRequest("Token không hợp lệ.");
+                if (userData == null) return BadRequest("Token không hợp lệ.");
 
-            user.EmailConfirmed = true;
-            _unitOfWork.UserRepository.UpdateAsync(user);
-            await _unitOfWork.SaveAsync();
+                var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(userData.Email);
+                if (existingUser != null) return BadRequest("Email đã được sử dụng.");
 
-            return Ok("Email đã được xác nhận thành công!");
+                // Thêm người dùng vào database
+                userData.EmailConfirmed = true;
+                await _unitOfWork.UserRepository.AddAsync(userData);
+                await _unitOfWork.SaveAsync(); // Lưu User để lấy ID
+
+                // Tạo cart cho user
+                var cart = new Cart
+                {
+                    UserId = userData.Id,
+                    CartItems = new List<CartItem>()
+                };
+                await _unitOfWork.CartRepository.AddAsync(cart);
+                await _unitOfWork.SaveAsync();
+
+                return Ok("Email đã được xác nhận thành công!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi xác nhận email: {ex.Message}");
+            }
         }
 
         [HttpGet("profile/{id}")]
@@ -184,23 +204,37 @@ namespace Pet.Controllers
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileDto updateProfileDto)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound("User not found.");
+            if (user == null) return NotFound("Người dùng không tồn tại.");
 
+            bool emailChanged = false;
+
+            // Kiểm tra nếu người dùng thay đổi email
             if (!string.IsNullOrEmpty(updateProfileDto.Email) && user.Email != updateProfileDto.Email)
             {
-                user.Email = updateProfileDto.Email;
+                emailChanged = true;
+                var newEmail = updateProfileDto.Email;
+
                 user.EmailConfirmed = false;
 
-                // Send confirmation email
-                var token = user.SecurityStamp;
-                var backendUrl = _configuration["Backend:Url"];
-                var frontendUrl = _configuration["Frontend:Url"];
-                var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={token}&email={user.Email}&redirectUrl={frontendUrl}";
+                // Tạo token chứa thông tin xác nhận
+                var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                {
+                    UserId = user.Id,
+                    NewEmail = newEmail,
+                    SecurityStamp = user.SecurityStamp
+                })));
 
-                await _emailService.SendEmailAsync(user.Email, "Xác Nhận Email",
+                // Gửi email xác nhận
+                var backendUrl = _configuration["Backend:Url"];
+                var confirmationUrl = $"{backendUrl}/api/account/confirm-email?token={HttpUtility.UrlEncode(token)}";
+
+                await _emailService.SendEmailAsync(newEmail, "Xác Nhận Email Mới",
                     $"Vui lòng xác nhận email của bạn bằng cách nhấp vào <a href='{confirmationUrl}'>đây</a>.");
+
+                user.Email = newEmail;
             }
 
+            // Cập nhật các thông tin khác
             if (!string.IsNullOrEmpty(updateProfileDto.FirstName))
                 user.FirstName = updateProfileDto.FirstName;
 
@@ -219,7 +253,9 @@ namespace Pet.Controllers
             _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();
 
-            return Ok("Profile updated successfully.");
+            return Ok(emailChanged
+                ? "Cập nhật hồ sơ thành công! Vui lòng kiểm tra email để xác nhận email mới."
+                : "Cập nhật hồ sơ thành công.");
         }
 
         [HttpPut("change-password/{id}")]
