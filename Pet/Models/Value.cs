@@ -8,9 +8,9 @@ namespace Pet.Models
         [Key]
         public int Id { get; set; }
         [Required]
+        [MaxLength(50)]
         public string Name { get; set; }
 
-        [ValidateNever]
-        public ICollection<ValueClassification> ValueClassifications { get; set; }
+        public ICollection<VariantValue> VariantValues { get; set; }
     }
 }

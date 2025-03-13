@@ -8,10 +8,11 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        public bool ByCash { get; set; } = true;
+        [Required]
+        [MaxLength(50)]
+        public string Name { get; set; }
         public bool IsSuccessfull { get; set; } = false;
 
-        [ValidateNever]
-        public Order Order { get; set; }
+        public ICollection<Order> Orders { get; set; }
     }
 }

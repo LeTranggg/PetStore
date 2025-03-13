@@ -14,16 +14,21 @@ namespace Pet.Models
         [Required]
         public decimal CoinEarned { get; set; }
         [Required]
+        [MaxLength(200)]
         public string ShippingAddress { get; set; }
         [Required]
+        [MaxLength(100)]
         public string RecipientName { get; set; }
         [Required]
+        [Phone]
+        [MaxLength(15)]
         public string RecipientPhone { get; set; }
         [Required]
-        public decimal Price { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public OrderStatus OrderStatus { get; set; }
-        public string? Reason { get; set; }
+        public decimal TotalPrice { get; set; }
+        [Required]
+        public string Status { get; set; } = "Pending";
+        [MaxLength(200)]
+        public string? CancelReason { get; set; }
 
         public int UserId { get; set; }
         [ForeignKey("UserId")]
@@ -35,19 +40,18 @@ namespace Pet.Models
         [ForeignKey("PaymentId")]
         public Payment Payment { get; set; }
 
-        [ValidateNever]
         public ICollection<OrderDetail> OrderDetails { get; set; }
 
         public void CalculateTotalPrice()
         {
-            decimal totalPrice = OrderDetails.Sum(ci => ci.Quantity * ci.Price);
+            decimal price = OrderDetails.Sum(od => od.Price);
             decimal shippingCost = Shipping.CalculateShippingCost(
-                OrderDetails.Sum(ci => ci.Quantity * ci.Classification.Weight),
-                OrderDetails.Max(ci => ci.Classification.Length),
-                OrderDetails.Max(ci => ci.Classification.Width),
-                OrderDetails.Max(ci => ci.Classification.Height)
+                OrderDetails.Sum(od => od.Quantity * od.Variant.Weight),
+                OrderDetails.Max(od => od.Variant.Length),
+                OrderDetails.Max(od => od.Variant.Width),
+                OrderDetails.Max(od => od.Variant.Height)
             );
-            Price = totalPrice + shippingCost;
+            TotalPrice = price + shippingCost;
         }
 
         public int CalculateLoyaltyCoins(decimal finalPrice)
@@ -62,18 +66,18 @@ namespace Pet.Models
         //Coins accumulated after each order
         public void ApplyLoyaltyCoins(bool IsUse)
         {
-            decimal finalPrice = Price;
+            decimal finalPrice = TotalPrice;
             if (IsUse)
             {
-                finalPrice -= User.LoyaltyCoin;
+                finalPrice -= User.LoyaltyCoins;
                 if (finalPrice < 0)
                     finalPrice = 0; //Ensure the order value is not negative
-                User.LoyaltyCoin = 0;
+                User.LoyaltyCoins = 0;
             }
             CoinEarned = CalculateLoyaltyCoins(finalPrice); //Calculate the new number of coins to receive based on the final order price
-            if (OrderStatus == OrderStatus.delivered && CoinEarned > 0)
+            if (Status == "Delivered" && CoinEarned > 0)
             {
-                User.LoyaltyCoin += CoinEarned;
+                User.LoyaltyCoins += CoinEarned;
             }
         }
 

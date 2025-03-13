@@ -12,14 +12,14 @@ using Pet.Datas;
 namespace Pet.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250103133834_AddItems")]
+    [Migration("20250313203552_AddItems")]
     partial class AddItems
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.33")
+                .HasAnnotation("ProductVersion", "6.0.36")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -106,6 +106,13 @@ namespace Pet.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            RoleId = 1
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -127,38 +134,6 @@ namespace Pet.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Pet.Models.Blog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Blogs");
-                });
-
             modelBuilder.Entity("Pet.Models.Cart", b =>
                 {
                     b.Property<int>("Id")
@@ -167,22 +142,16 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Carts");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            UserId = 1
-                        });
                 });
 
             modelBuilder.Entity("Pet.Models.CartItem", b =>
@@ -196,17 +165,17 @@ namespace Pet.Migrations
                     b.Property<int>("CartId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ClassificationId")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("Quantity")
+                    b.Property<int>("VariantId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CartId");
 
-                    b.HasIndex("ClassificationId");
+                    b.HasIndex("VariantId");
 
                     b.ToTable("CartItems");
                 });
@@ -221,116 +190,12 @@ namespace Pet.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("Pet.Models.CategoryBlog", b =>
-                {
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CategoryId", "BlogId");
-
-                    b.HasIndex("BlogId");
-
-                    b.ToTable("CategoryBlogs");
-                });
-
-            modelBuilder.Entity("Pet.Models.Classification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<decimal>("Height")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Length")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Weight")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Width")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("Classifications");
-                });
-
-            modelBuilder.Entity("Pet.Models.MyPet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Age")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal?>("Girth")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Leight")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Neck")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("Species")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Weight")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MyPets");
                 });
 
             modelBuilder.Entity("Pet.Models.Order", b =>
@@ -341,47 +206,50 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<decimal>("CoinEarned")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OrderStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("RecipientName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("RecipientPhone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<string>("ShippingAddress")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("ShippingId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PaymentId")
-                        .IsUnique();
+                    b.HasIndex("PaymentId");
 
                     b.HasIndex("ShippingId");
 
@@ -398,23 +266,20 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("ClassificationId")
-                        .HasColumnType("int");
-
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("VariantId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ClassificationId");
-
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -427,15 +292,66 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<bool>("ByCash")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsSuccessfull")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("Pet.Models.Post", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("Pet.Models.PostCategory", b =>
+                {
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PostId", "CategoryId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("PostCategories");
                 });
 
             modelBuilder.Entity("Pet.Models.Product", b =>
@@ -450,14 +366,16 @@ namespace Pet.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -482,13 +400,15 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("BlockReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsReport")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Reason")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
@@ -509,13 +429,11 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("ClassificationId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte>("Rating")
@@ -524,11 +442,14 @@ namespace Pet.Migrations
                     b.Property<int>("ReviewId")
                         .HasColumnType("int");
 
+                    b.Property<int>("VariantId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ClassificationId");
-
                     b.HasIndex("ReviewId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("ReviewDetails");
                 });
@@ -567,7 +488,7 @@ namespace Pet.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "b7ce0864-b64b-47d5-b50a-370198375768",
+                            ConcurrencyStamp = "67a42a5d-2bf0-4041-a197-88c15e669a08",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -581,12 +502,13 @@ namespace Pet.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ShippingMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -603,22 +525,25 @@ namespace Pet.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("Id");
 
@@ -638,7 +563,12 @@ namespace Pet.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BlockReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -655,18 +585,11 @@ namespace Pet.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FirstName")
+                    b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsReport")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
+                    b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -675,8 +598,13 @@ namespace Pet.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<decimal>("LoyaltyCoin")
+                    b.Property<decimal>("LoyaltyCoins")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -691,18 +619,20 @@ namespace Pet.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RoleId")
+                    b.Property<int?>("RoleId")
                         .HasColumnType("int");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -732,22 +662,21 @@ namespace Pet.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             Address = "Admin Address",
-                            ConcurrencyStamp = "88ba1039-03b6-4bf7-b35b-654411a88f3a",
+                            ConcurrencyStamp = "beaf000c-65a4-4e81-8bdf-fb2070183a6f",
                             DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
-                            FirstName = "Admin",
-                            IsReport = false,
-                            LastName = "User",
+                            Gender = "Male",
                             LockoutEnabled = false,
-                            LoyaltyCoin = 0m,
+                            LoyaltyCoins = 0m,
+                            Name = "Admin User",
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEKpAPxQrY9mtrwcsKtCVq/eqyXdKhhIlWT9NYFfmyMHrRbFGSUhfg0C5I7ETum+7wA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEEO7J1o7ryFCxXHdfhmIWPX6RUGkmhSReABcBo88KX7AdhNmHww4lFdUd+1JShUw0g==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = false,
-                            RoleId = 1,
-                            SecurityStamp = "a0707314-450c-4aed-8649-664743803ec5",
+                            SecurityStamp = "5515ed83-3205-4786-8f4d-808f9e9a4a1a",
+                            Status = "Active",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -763,26 +692,71 @@ namespace Pet.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Values");
                 });
 
-            modelBuilder.Entity("Pet.Models.ValueClassification", b =>
+            modelBuilder.Entity("Pet.Models.Variant", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("AdditionalFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Height")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Length")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Weight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Width")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Variants");
+                });
+
+            modelBuilder.Entity("Pet.Models.VariantValue", b =>
+                {
+                    b.Property<int>("VariantId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ValueId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ClassificationId")
-                        .HasColumnType("int");
+                    b.HasKey("VariantId", "ValueId");
 
-                    b.HasKey("ValueId", "ClassificationId");
+                    b.HasIndex("ValueId");
 
-                    b.HasIndex("ClassificationId");
-
-                    b.ToTable("ValuesClassifications");
+                    b.ToTable("VariantValues");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -836,24 +810,11 @@ namespace Pet.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Pet.Models.Blog", b =>
-                {
-                    b.HasOne("Pet.Models.User", "User")
-                        .WithMany("Blogs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Pet.Models.Cart", b =>
                 {
                     b.HasOne("Pet.Models.User", "User")
                         .WithOne("Cart")
-                        .HasForeignKey("Pet.Models.Cart", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Pet.Models.Cart", "UserId");
 
                     b.Navigation("User");
                 });
@@ -866,64 +827,23 @@ namespace Pet.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Pet.Models.Classification", "Classification")
+                    b.HasOne("Pet.Models.Variant", "Variant")
                         .WithMany("CartItems")
-                        .HasForeignKey("ClassificationId")
+                        .HasForeignKey("VariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Cart");
 
-                    b.Navigation("Classification");
-                });
-
-            modelBuilder.Entity("Pet.Models.CategoryBlog", b =>
-                {
-                    b.HasOne("Pet.Models.Blog", "Blog")
-                        .WithMany("CategoryBlogs")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Pet.Models.Category", "Category")
-                        .WithMany("CategoryBlogs")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("Pet.Models.Classification", b =>
-                {
-                    b.HasOne("Pet.Models.Product", "Product")
-                        .WithMany("Classifications")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Pet.Models.MyPet", b =>
-                {
-                    b.HasOne("Pet.Models.User", "User")
-                        .WithMany("MyPets")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("Pet.Models.Order", b =>
                 {
                     b.HasOne("Pet.Models.Payment", "Payment")
-                        .WithOne("Order")
-                        .HasForeignKey("Pet.Models.Order", "PaymentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany("Orders")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Pet.Models.Shipping", "Shipping")
@@ -935,7 +855,7 @@ namespace Pet.Migrations
                     b.HasOne("Pet.Models.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Payment");
@@ -947,21 +867,51 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.OrderDetail", b =>
                 {
-                    b.HasOne("Pet.Models.Classification", "Classification")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ClassificationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Pet.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Classification");
+                    b.HasOne("Pet.Models.Variant", "Variant")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
+
+                    b.Navigation("Variant");
+                });
+
+            modelBuilder.Entity("Pet.Models.Post", b =>
+                {
+                    b.HasOne("Pet.Models.User", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Pet.Models.PostCategory", b =>
+                {
+                    b.HasOne("Pet.Models.Category", "Category")
+                        .WithMany("PostCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Pet.Models.Post", "Post")
+                        .WithMany("PostCategories")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Pet.Models.Product", b =>
@@ -988,7 +938,7 @@ namespace Pet.Migrations
                     b.HasOne("Pet.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -996,56 +946,58 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.ReviewDetail", b =>
                 {
-                    b.HasOne("Pet.Models.Classification", "Classification")
-                        .WithMany("ReviewDetails")
-                        .HasForeignKey("ClassificationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Pet.Models.Review", "Review")
                         .WithMany("ReviewDetails")
                         .HasForeignKey("ReviewId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Classification");
+                    b.HasOne("Pet.Models.Variant", "Variant")
+                        .WithMany("ReviewDetails")
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Review");
+
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("Pet.Models.User", b =>
                 {
-                    b.HasOne("Pet.Models.Role", "Role")
+                    b.HasOne("Pet.Models.Role", null)
                         .WithMany("Users")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Role");
+                        .HasForeignKey("RoleId");
                 });
 
-            modelBuilder.Entity("Pet.Models.ValueClassification", b =>
+            modelBuilder.Entity("Pet.Models.Variant", b =>
                 {
-                    b.HasOne("Pet.Models.Classification", "Classification")
-                        .WithMany("ValueClassifications")
-                        .HasForeignKey("ClassificationId")
+                    b.HasOne("Pet.Models.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Pet.Models.VariantValue", b =>
+                {
                     b.HasOne("Pet.Models.Value", "Value")
-                        .WithMany("ValueClassifications")
+                        .WithMany("VariantValues")
                         .HasForeignKey("ValueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Classification");
+                    b.HasOne("Pet.Models.Variant", "Variant")
+                        .WithMany("VariantValues")
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Value");
-                });
 
-            modelBuilder.Entity("Pet.Models.Blog", b =>
-                {
-                    b.Navigation("CategoryBlogs");
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("Pet.Models.Cart", b =>
@@ -1055,20 +1007,9 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.Category", b =>
                 {
-                    b.Navigation("CategoryBlogs");
+                    b.Navigation("PostCategories");
 
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("Pet.Models.Classification", b =>
-                {
-                    b.Navigation("CartItems");
-
-                    b.Navigation("OrderDetails");
-
-                    b.Navigation("ReviewDetails");
-
-                    b.Navigation("ValueClassifications");
                 });
 
             modelBuilder.Entity("Pet.Models.Order", b =>
@@ -1078,13 +1019,17 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.Payment", b =>
                 {
-                    b.Navigation("Order")
-                        .IsRequired();
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Pet.Models.Post", b =>
+                {
+                    b.Navigation("PostCategories");
                 });
 
             modelBuilder.Entity("Pet.Models.Product", b =>
                 {
-                    b.Navigation("Classifications");
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("Pet.Models.Review", b =>
@@ -1109,21 +1054,30 @@ namespace Pet.Migrations
 
             modelBuilder.Entity("Pet.Models.User", b =>
                 {
-                    b.Navigation("Blogs");
-
                     b.Navigation("Cart")
                         .IsRequired();
 
-                    b.Navigation("MyPets");
-
                     b.Navigation("Orders");
+
+                    b.Navigation("Posts");
 
                     b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Pet.Models.Value", b =>
                 {
-                    b.Navigation("ValueClassifications");
+                    b.Navigation("VariantValues");
+                });
+
+            modelBuilder.Entity("Pet.Models.Variant", b =>
+                {
+                    b.Navigation("CartItems");
+
+                    b.Navigation("OrderDetails");
+
+                    b.Navigation("ReviewDetails");
+
+                    b.Navigation("VariantValues");
                 });
 #pragma warning restore 612, 618
         }

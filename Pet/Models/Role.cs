@@ -7,12 +7,9 @@ namespace Pet.Models
 {
     public class Role : IdentityRole<int>
     {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public string Name { get; set; }
+        [MaxLength(50)]
+        public override string Name { get; set; } // Ghi đè từ IdentityRole
 
-        [ValidateNever]
         public ICollection<User> Users { get; set; }
     }
 }

@@ -9,26 +9,27 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ShippingMethod ShippingMethod { get; set; }
         [Required]
+        [MaxLength(50)]
+        public string Name { get; set; }
+        [Required]
+        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
-        [ValidateNever]
         public ICollection<Order> Orders { get; set; }
 
         public decimal CalculateShippingCost(decimal weight, decimal length, decimal width, decimal height)
         {
             decimal volumetricWeight = (length * width * height) / 5000;
-            if (ShippingMethod == ShippingMethod.Road || ShippingMethod == ShippingMethod.Air)
+            if (Name == "Road" || Name == "Air")
             {
                 return weight > volumetricWeight ? weight * Price : volumetricWeight * Price;
             }
-            else if (ShippingMethod == ShippingMethod.Sea)
+            else if (Name == "Sea")
             {
                 return weight < 1000 ? weight * Price : volumetricWeight * Price;
             }
-            else if (ShippingMethod == ShippingMethod.Rail)
+            else if (Name == "Rail")
             {
                 if (weight <= 20)
                     return weight * Price;

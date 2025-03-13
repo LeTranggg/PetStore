@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Pet.Models;
 using System.Reflection.Metadata;
 
+
+
 namespace Pet.Datas
 {
     public class ApplicationDbContext : IdentityDbContext<User, Role, int>
@@ -14,232 +16,190 @@ namespace Pet.Datas
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<Classification> Classifications { get; set; }
+        public DbSet<Variant> Variants { get; set; }
+        public DbSet<Value> Values { get; set; }
+        public DbSet<VariantValue> VariantValues { get; set; } // Thêm bảng trung gian
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<PostCategory> PostCategories { get; set; } // Thêm bảng trung gian
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewDetail> ReviewDetails { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
-        public DbSet<Payment> Payments { get; set; }
         public DbSet<Shipping> Shippings { get; set; }
-        public DbSet<MyPet> MyPets { get; set; }
-        public DbSet<Blog> Blogs { get; set; }
-        public DbSet<Value> Values { get; set; }
-        public DbSet<ValueClassification> ValuesClassifications { get; set; }
-        public DbSet<CategoryBlog> CategoryBlogs { get; set; }
-
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // Configuring relationships and constraints
 
-            // Category
-            modelBuilder.Entity<Category>()
-                .HasMany(c => c.Products)
-                .WithOne(p => p.Category)
-                .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Định nghĩa khóa chính lưu các thông tin đăng nhập bên thứ ba
+            modelBuilder.Entity<IdentityUserLogin<int>>()
+                .HasKey(l => new { l.LoginProvider, l.ProviderKey });
 
-            // Supplier
-            modelBuilder.Entity<Supplier>()
-                .HasMany(s => s.Products)
-                .WithOne(p => p.Supplier)
-                .HasForeignKey(p => p.SupplierId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Định nghĩa khóa chính cho bảng trung gian mối quan hệ giữa User và Role
+            modelBuilder.Entity<IdentityUserRole<int>>()
+                .HasKey(ur => new { ur.UserId, ur.RoleId });
 
-            // Product
+            // Định nghĩa khóa chính để đảm bảo mỗi user không có nhiều token trùng lặp từ cùng một provider
+            modelBuilder.Entity<IdentityUserToken<int>>()
+                .HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
+
+            // Product - Category & Supplier
             modelBuilder.Entity<Product>()
-                .HasMany(p => p.Classifications)
-                .WithOne(c => c.Product)
-                .HasForeignKey(c => c.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId);
 
-            // Classification
-            modelBuilder.Entity<Classification>()
-                .HasMany(c => c.OrderDetails)
-                .WithOne(od => od.Classification)
-                .HasForeignKey(od => od.ClassificationId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Supplier)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SupplierId);
 
-            modelBuilder.Entity<Classification>()
-                .HasMany(c => c.ReviewDetails)
-                .WithOne(rd => rd.Classification)
-                .HasForeignKey(rd => rd.ClassificationId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Variant - Product
+            modelBuilder.Entity<Variant>()
+                .HasOne(v => v.Product)
+                .WithMany(p => p.Variants)
+                .HasForeignKey(v => v.ProductId);
 
-            modelBuilder.Entity<Classification>()
-                .HasMany(c => c.CartItems)
-                .WithOne(ci => ci.Classification)
-                .HasForeignKey(ci => ci.ClassificationId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Variant - Value (N:M with VariantValue)
+            modelBuilder.Entity<VariantValue>()
+                .HasKey(vv => new { vv.VariantId, vv.ValueId });
+            modelBuilder.Entity<VariantValue>()
+                .HasOne(vv => vv.Variant)
+                .WithMany(v => v.VariantValues)
+                .HasForeignKey(vv => vv.VariantId);
+            modelBuilder.Entity<VariantValue>()
+                .HasOne(vv => vv.Value)
+                .WithMany(v => v.VariantValues)
+                .HasForeignKey(vv => vv.ValueId);
+
+            // Post - User & Category (N:M with PostCategory)
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Posts)
+                .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<PostCategory>()
+                .HasKey(pc => new { pc.PostId, pc.CategoryId });
+            modelBuilder.Entity<PostCategory>()
+                .HasOne(pc => pc.Post)
+                .WithMany(p => p.PostCategories)
+                .HasForeignKey(pc => pc.PostId);
+            modelBuilder.Entity<PostCategory>()
+                .HasOne(pc => pc.Category)
+                .WithMany(c => c.PostCategories)
+                .HasForeignKey(pc => pc.CategoryId);
+
+            // Review - User & ReviewDetail - Variant
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId);
+
+            modelBuilder.Entity<ReviewDetail>()
+                .HasOne(rd => rd.Review)
+                .WithMany(r => r.ReviewDetails)
+                .HasForeignKey(rd => rd.ReviewId);
+
+            modelBuilder.Entity<ReviewDetail>()
+                .HasOne(rd => rd.Variant)
+                .WithMany(v => v.ReviewDetails)
+                .HasForeignKey(rd => rd.VariantId);
+
+            // Cart - User & CartItem - Variant
+            modelBuilder.Entity<Cart>()
+                .HasOne(c => c.User)
+                .WithOne(u => u.Cart)
+                .HasForeignKey<Cart>(c => c.UserId)
+                .IsRequired(false); // UserId trong Cart không bắt buộc
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Cart)
+                .WithMany(c => c.CartItems)
+                .HasForeignKey(ci => ci.CartId);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Variant)
+                .WithMany(v => v.CartItems)
+                .HasForeignKey(ci => ci.VariantId);
+
+            // Order - User, Shipping, Payment & OrderDetail - Variant
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Shipping)
+                .WithMany(s => s.Orders)
+                .HasForeignKey(o => o.ShippingId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Payment)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.PaymentId);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Variant)
+                .WithMany(v => v.OrderDetails)
+                .HasForeignKey(od => od.VariantId);
 
             // User
             modelBuilder.Entity<User>()
                 .Property(u => u.DateOfBirth)
                 .HasColumnType("date"); //Make sure to save as date in database
 
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Cart)
-                .WithOne(c => c.User)
-                .HasForeignKey<Cart>(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Seed vai trò Admin
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 1,
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                }
+            );
 
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Orders)
-                .WithOne(o => o.User)
-                .HasForeignKey(o => o.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Reviews)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.MyPets)
-                .WithOne(u => u.User)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Blogs)
-                .WithOne(b => b.User)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Cart
-            modelBuilder.Entity<Cart>()
-                .HasMany(c => c.CartItems)
-                .WithOne(ci => ci.Cart)
-                .HasForeignKey(ci => ci.CartId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Order
-            modelBuilder.Entity<Order>()
-                .Property(s => s.OrderStatus)
-                .HasConversion(
-                    v => v.ToString(), // Store OrderStatus as string in the database
-                    v => (OrderStatus)Enum.Parse(typeof(OrderStatus), v));
-
-            modelBuilder.Entity<Order>()
-                .HasMany(o => o.OrderDetails)
-                .WithOne(od => od.Order)
-                .HasForeignKey(od => od.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Payment
-            modelBuilder.Entity<Payment>()
-                .HasOne(pa => pa.Order)
-                .WithOne(o => o.Payment)
-                .HasForeignKey<Order>(o => o.PaymentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Shipping
-            modelBuilder.Entity<Shipping>()
-                .Property(s => s.ShippingMethod)
-                .HasConversion(
-                    v => v.ToString(), // Store ShippingMethod as string in the database
-                    v => (ShippingMethod)Enum.Parse(typeof(ShippingMethod), v));
-
-            modelBuilder.Entity<Shipping>()
-                .HasMany(s => s.Orders)
-                .WithOne(o => o.Shipping)
-                .HasForeignKey(o => o.ShippingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Review
-            modelBuilder.Entity<Review>()
-                .HasMany(r => r.ReviewDetails)
-                .WithOne(rd => rd.Review)
-                .HasForeignKey(rd => rd.ReviewId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Role
-            modelBuilder.Entity<Role>()
-                .HasMany(r => r.Users)
-                .WithOne(u => u.Role)
-                .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // CategoryBlog
-            modelBuilder.Entity<CategoryBlog>()
-                .HasKey(cb => new { cb.CategoryId, cb.BlogId });
-
-            modelBuilder.Entity<CategoryBlog>()
-                .HasOne(cb => cb.Category)
-                .WithMany(c => c.CategoryBlogs)
-                .HasForeignKey(cb => cb.CategoryId);
-
-            modelBuilder.Entity<CategoryBlog>()
-                .HasOne(cb => cb.Blog)
-                .WithMany(b => b.CategoryBlogs)
-                .HasForeignKey(cb => cb.BlogId);
-
-            //ValueClassification
-            modelBuilder.Entity<ValueClassification>()
-                .HasKey(vc => new { vc.ValueId, vc.ClassificationId });
-
-            modelBuilder.Entity<ValueClassification>()
-                .HasOne(vc => vc.Value)
-                .WithMany(v => v.ValueClassifications)
-                .HasForeignKey(vc => vc.ValueId);
-
-            modelBuilder.Entity<ValueClassification>()
-                .HasOne(vc => vc.Classification)
-                .WithMany(c => c.ValueClassifications)
-                .HasForeignKey(vc => vc.ClassificationId);
-
-            // Seed Admin Role
-            var adminRoleId = 1;
-            var adminRole = new Role
-            {
-                Id = adminRoleId,
-                Name = "Admin",
-                NormalizedName = "ADMIN"
-            };
-
-            // Seed Admin User
-            var adminUserId = 1;
-            var passwordHasher = new PasswordHasher<User>();
+            // Seed tài khoản Admin
+            var hasher = new PasswordHasher<User>();
             var adminUser = new User
             {
-                Id = adminUserId,
+                Id = 1,
                 UserName = "admin",
                 NormalizedUserName = "ADMIN",
                 Email = "admin@example.com",
                 NormalizedEmail = "ADMIN@EXAMPLE.COM",
                 EmailConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                FirstName = "Admin",
-                LastName = "User",
+                Name = "Admin User",
                 DateOfBirth = new DateTime(1980, 1, 1),
-                Address = "Admin Address",
+                Gender = "Male",
                 PhoneNumber = "1234567890",
-                RoleId = adminRoleId,
-                LoyaltyCoin = 0,
-                IsReport = false
+                Address = "Admin Address",
+                LoyaltyCoins = 0,
+                Status = "Active"
             };
-
-            // Hash the password
-            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin@123");
-
-            // Seed Admin Cart
-            var adminCart = new Cart
-            {
-                Id = 1, // ID cố định
-                UserId = adminUserId // Liên kết với Admin User
-            };
-
-            // Seeding Data
-            modelBuilder.Entity<Role>().HasData(adminRole);
+            adminUser.PasswordHash = hasher.HashPassword(adminUser, "Admin@123");
             modelBuilder.Entity<User>().HasData(adminUser);
-            modelBuilder.Entity<Cart>().HasData(adminCart);
+
+            // Liên kết User với Role
+            modelBuilder.Entity<IdentityUserRole<int>>().HasData(
+                new IdentityUserRole<int>
+                {
+                    UserId = 1,
+                    RoleId = 1
+                }
+            );
+
         }
     }
 }

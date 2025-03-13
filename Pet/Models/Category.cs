@@ -9,11 +9,10 @@ namespace Pet.Models
         [Key]
         public int Id { get; set; }
         [Required]
+        [MaxLength(100)]
         public string Name { get; set; }
 
-        [ValidateNever]
         public ICollection<Product> Products { get; set; }
-        [ValidateNever]
-        public ICollection<CategoryBlog> CategoryBlogs { get; set; }
+        public ICollection<PostCategory> PostCategories { get; set; }
     }
 }

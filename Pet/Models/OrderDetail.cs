@@ -10,13 +10,16 @@ namespace Pet.Models
         [Required]
         public int Quantity { get; set; }
         [Required]
-        public decimal Price { get; set; }
+        public decimal Price
+        {
+            get { return Quantity * (Variant.AdditionalFee + Variant.Product.Price); }
+        }
 
         public int OrderId { get; set; }
         [ForeignKey("OrderId")]
         public Order Order { get; set; }
-        public int ClassificationId { get; set; }
-        [ForeignKey("ClassificationId")]
-        public Classification Classification { get; set; }
+        public int VariantId { get; set; }
+        [ForeignKey("VariantId")]
+        public Variant Variant { get; set; }
     }
 }

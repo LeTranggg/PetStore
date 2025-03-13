@@ -9,16 +9,15 @@ namespace Pet.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public decimal Price
+        public decimal TotalPrice
         {
-            get { return CartItems.Sum(ci => ci.Quantity * (ci.Classification.Price + ci.Classification.Product.Price)); }
+            get { return CartItems.Sum(ci => ci.Price); }
         }
 
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         [ForeignKey("UserId")]
         public User User { get; set; }
 
-        [ValidateNever]
         public ICollection<CartItem> CartItems { get; set; }
     }
 }

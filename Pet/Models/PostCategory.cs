@@ -2,13 +2,13 @@
 
 namespace Pet.Models
 {
-    public class CategoryBlog
+    public class PostCategory
     {
+        public int PostId { get; set; }
+        [ForeignKey("PostId")]
+        public Post Post { get; set; }
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category Category { get; set; }
-        public int BlogId { get; set; }
-        [ForeignKey("BlogId")]
-        public Blog Blog { get; set; }
     }
 }
