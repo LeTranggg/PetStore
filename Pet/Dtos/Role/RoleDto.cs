@@ -1,4 +1,4 @@
-﻿namespace Pet.Dtos
+﻿namespace Pet.Dtos.Role
 {
     public class RoleDto
     {

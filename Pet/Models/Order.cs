@@ -1,11 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Pet.Datas;
-using System.Text.Json.Serialization;
 
 namespace Pet.Models
 {
+    public enum OrderStatus
+    {
+        Pending,
+        Delivering,
+        Received,
+        Cancelled
+    }
+
+    public enum CancelReason
+    {
+        None,         
+        Expiration,   // Quá hạn xác nhận
+        Mistake,      // Đặt nhầm
+        Violation,    // Vi phạm điều khoản
+    }
+
     public class Order
     {
         [Key]
@@ -26,9 +40,9 @@ namespace Pet.Models
         [Required]
         public decimal TotalPrice { get; set; }
         [Required]
-        public string Status { get; set; } = "Pending";
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         [MaxLength(200)]
-        public string? CancelReason { get; set; }
+        public CancelReason CancelReason { get; set; } = CancelReason.None;
 
         public int UserId { get; set; }
         [ForeignKey("UserId")]
@@ -55,11 +69,9 @@ namespace Pet.Models
         }
 
         public int CalculateLoyaltyCoins(decimal finalPrice)
-        {
-            if (finalPrice >= 100000)
-            {
-                return ((int)(finalPrice / 100000)) * 100; //Divide by 100 to calculate the number of times 100 is in finalPrice
-            }
+        {   
+            //Divide by 100 to calculate the number of times 100 is in finalPrice
+            if (finalPrice >= 100000) return ((int)(finalPrice / 100000)) * 100; 
             return 0;
         }
 
@@ -70,15 +82,11 @@ namespace Pet.Models
             if (IsUse)
             {
                 finalPrice -= User.LoyaltyCoins;
-                if (finalPrice < 0)
-                    finalPrice = 0; //Ensure the order value is not negative
+                if (finalPrice < 0) finalPrice = 0; //Ensure the order value is not negative
                 User.LoyaltyCoins = 0;
             }
             CoinEarned = CalculateLoyaltyCoins(finalPrice); //Calculate the new number of coins to receive based on the final order price
-            if (Status == "Delivered" && CoinEarned > 0)
-            {
-                User.LoyaltyCoins += CoinEarned;
-            }
+            if (Status == OrderStatus.Received && CoinEarned > 0) User.LoyaltyCoins += CoinEarned;
         }
 
     }

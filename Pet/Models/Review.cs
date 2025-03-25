@@ -4,15 +4,30 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Pet.Models
 {
+    public enum ReviewStatus
+    {
+        Reported,
+        Unreported
+    }
+
+    public enum ReportReason
+    {
+        None,     
+        Spam,         // Spam hoặc quảng cáo
+        Harassment,   // Quấy rối, lạm dụng
+        Fraud,        // Gian lận, giả mạo
+        Violation,    // Vi phạm điều khoản
+    }
+
     public class Review
     {
         [Key]
         public int Id { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.Now;
         [Required]
-        public string Status { get; set; } = "Active";
+        public ReviewStatus Status { get; set; } = ReviewStatus.Unreported;
         [MaxLength(200)]
-        public string? BlockReason { get; set; }
+        public ReportReason ReportReason { get; set; } = ReportReason.None;
 
         public int UserId { get; set; }
         [ForeignKey("UserId")]
