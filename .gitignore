@@ -364,3 +364,4 @@ FodyWeavers.xsdappsettings.json
 ApplicationDbContext.cs
 MappingProfile.cs
 Program.cs
+Migrations/
