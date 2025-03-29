@@ -4,8 +4,8 @@ namespace Pet.Services.IServices
 {
     public interface IAccountService
     {
-        Task<TokenResponseDto> LoginAsync(LoginDto loginDto);
-        Task<TokenResponseDto> GoogleLoginAsync(GoogleDto googleDto);
+        Task<string> LoginAsync(LoginDto loginDto);
+        Task<string> GoogleLoginAsync(GoogleDto googleDto);
         Task<ProfileDto> GetProfileByIdAsync(int userId);
         Task<ProfileDto> RegisterAsync(RegisterDto registerDto);
         Task ConfirmEmailAsync(string email, string token);

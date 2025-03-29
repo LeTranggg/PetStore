@@ -24,6 +24,7 @@ namespace Pet.Services
         public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
             var category = await _context.Categories.ToListAsync();
+
             return _mapper.Map<IEnumerable<CategoryDto>>(category);
         }
 
@@ -32,6 +33,7 @@ namespace Pet.Services
         {
             var category = await _context.Categories.FindAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found.");
+
             return _mapper.Map<CategoryDto>(category);
         }
 
@@ -57,7 +59,7 @@ namespace Pet.Services
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found.");
 
             if (await _context.Categories.AnyAsync(c => c.Name == updateCategoryDto.Name))
-                throw new InvalidOperationException($"Category with name '{updateCategoryDto.Name} already exists.");
+                throw new InvalidOperationException($"Category with name '{updateCategoryDto.Name}' already exists.");
 
             _mapper.Map(updateCategoryDto, category);
 
@@ -75,6 +77,7 @@ namespace Pet.Services
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
+
             return true;
         }
     }

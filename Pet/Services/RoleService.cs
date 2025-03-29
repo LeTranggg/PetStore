@@ -22,6 +22,7 @@ namespace Pet.Services
         public async Task<IEnumerable<RoleDto>> GetAllRolesAsync()
         {
             var roles = await _context.Roles.ToListAsync();
+
             return _mapper.Map<IEnumerable<RoleDto>>(roles);
         }
 
@@ -30,6 +31,7 @@ namespace Pet.Services
         {
             var role = await _context.Roles.FindAsync(id);
             if (role == null) throw new KeyNotFoundException($"Role with ID {id} not found.");
+
             return _mapper.Map<RoleDto>(role);
         }
 
@@ -60,6 +62,7 @@ namespace Pet.Services
                 throw new InvalidOperationException($"Role with name '{updateRoleDto.Name}' already exists.");
 
             _mapper.Map(updateRoleDto, role);
+
             role.NormalizedName = updateRoleDto.Name.ToUpper(); // Cập nhật NormalizedName
 
             _context.Roles.Update(role);
@@ -80,6 +83,7 @@ namespace Pet.Services
 
             _context.Roles.Remove(role);
             await _context.SaveChangesAsync();
+
             return true;
         }
     }

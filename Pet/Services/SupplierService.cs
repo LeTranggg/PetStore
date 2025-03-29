@@ -35,7 +35,9 @@ namespace Pet.Services
                 File = new FileDescription(image.FileName, stream),
                 PublicId = Guid.NewGuid().ToString()
             };
+
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
             return uploadResult.SecureUrl.ToString();
         }
 
@@ -43,6 +45,7 @@ namespace Pet.Services
         public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
         {
             var supplier = await _context.Suppliers.ToListAsync();
+
             return _mapper.Map<IEnumerable<SupplierDto>>(supplier);
         }
 
@@ -51,6 +54,7 @@ namespace Pet.Services
         {
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {id} not found.");
+
             return _mapper.Map<SupplierDto>(supplier);
         }
 
@@ -58,7 +62,7 @@ namespace Pet.Services
         public async Task<SupplierDto> CreateSupplierAsync(CreateSupplierDto createSupplierDto)
         {
             if (await _context.Suppliers.AnyAsync(s => s.Email == createSupplierDto.Email))
-                throw new InvalidOperationException($"Email {createSupplierDto.Email}' already exists.");
+                throw new InvalidOperationException($"Email {createSupplierDto.Email} already exists.");
 
             var supplier = _mapper.Map<Supplier>(createSupplierDto);
 
@@ -76,15 +80,17 @@ namespace Pet.Services
         {
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {id} not found.");
-            if (await _context.Suppliers.AnyAsync(s => s.Email == updateSupplierDto.Email))
-                throw new InvalidOperationException($"Email {updateSupplierDto.Email} already exists.");
 
             if (updateSupplierDto.Name != null) supplier.Name = updateSupplierDto.Name;
-            if (updateSupplierDto.Email != null) supplier.Email = updateSupplierDto.Email;
+            if (updateSupplierDto.Email != null)
+            {
+                if (await _context.Suppliers.AnyAsync(s => s.Email == updateSupplierDto.Email))
+                    throw new InvalidOperationException($"Email {updateSupplierDto.Email} already exists.");
+                supplier.Email = updateSupplierDto.Email;
+            }
             if (updateSupplierDto.PhoneNumber != null) supplier.PhoneNumber = updateSupplierDto.PhoneNumber;
             if (updateSupplierDto.Address != null) supplier.Address = updateSupplierDto.Address;
             if (updateSupplierDto.Image != null) supplier.Image = await UploadImageToCloudinaryAsync(updateSupplierDto.Image);
-            _mapper.Map(updateSupplierDto, supplier);
 
             _context.Suppliers.Update(supplier);
             await _context.SaveChangesAsync();

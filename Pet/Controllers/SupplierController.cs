@@ -9,7 +9,7 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class SupplierController : ControllerBase
     {
         private readonly ISupplierService _supplierService;
@@ -77,7 +77,7 @@ namespace Pet.Controllers
 
         // DELETE: api/supplier/1
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteSupplier(int id)
         {
             try
             {

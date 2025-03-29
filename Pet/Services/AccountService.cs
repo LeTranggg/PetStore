@@ -3,9 +3,12 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Pet.Datas;
 using Pet.Dtos.Account;
+using Pet.Dtos.User;
 using Pet.Models;
 using Pet.Services.IServices;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,9 +25,10 @@ namespace Pet.Services
         private readonly IEmailService _emailService;
         private readonly Cloudinary _cloudinary;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountService> _logger;
 
         public AccountService( UserManager<User> userManager, IEmailService emailService, 
-            IMapper mapper, ApplicationDbContext context, Cloudinary cloudinary, IConfiguration configuration)
+            IMapper mapper, ApplicationDbContext context, Cloudinary cloudinary, IConfiguration configuration, ILogger<AccountService> logger)
         {
             _userManager = userManager;
             _emailService = emailService;
@@ -32,6 +36,7 @@ namespace Pet.Services
             _context = context;
             _cloudinary = cloudinary;
             _mapper = mapper;
+            _logger = logger;
         }
 
         // Tải ảnh lên Cloudinary
@@ -45,7 +50,9 @@ namespace Pet.Services
                 File = new FileDescription(image.FileName, stream),
                 PublicId = Guid.NewGuid().ToString()
             };
+
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
             return uploadResult.SecureUrl.ToString();
         }
 
@@ -69,17 +76,18 @@ namespace Pet.Services
                 signingCredentials: creds);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
             return tokenString;
         }
 
         // Đăng nhập bằng email
-        public async Task<TokenResponseDto> LoginAsync(LoginDto loginDto)
+        public async Task<string> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null || !user.EmailConfirmed)
                 throw new UnauthorizedAccessException("Invalid credentials or email not confirmed.");
 
-            // Kiểm tra trạng thái khóa tài khoản
+            // Kiểm tra tình trạng khoá tài khoản
             var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
             var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
             if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
@@ -93,47 +101,57 @@ namespace Pet.Services
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
             var token = GenerateJwtToken(user);
-            return new TokenResponseDto { Token = token, RefreshToken = null };
+            _logger.LogInformation("Token generated for {Email}: {Token}", loginDto.Email, token);
+
+            return token;
         }
 
         // Đăng nhập bằng Google
-        public async Task<TokenResponseDto> GoogleLoginAsync(GoogleDto googleDto)
+        public async Task<string> GoogleLoginAsync(GoogleDto googleDto)
         {
             var payload = await GoogleJsonWebSignature.ValidateAsync(googleDto.Token);
-            if (payload == null) throw new UnauthorizedAccessException("Invalid Google token.");
+            if (payload == null)
+            {
+                throw new UnauthorizedAccessException("Invalid Google token.");
+            }
+            Console.WriteLine($"Token validated. Email: {payload.Email}, Name: {payload.Name}");
 
             var user = await _userManager.FindByEmailAsync(payload.Email);
             if (user == null)
             {
-                user = new User
-                {
-                    UserName = payload.Email,
-                    Email = payload.Email,
-                    EmailConfirmed = true,
-                    Name = payload.Name,
-                    RoleId = 3 // Role "Customer" có ID = 3
-                };
-                var result = await _userManager.CreateAsync(user);
-                if (!result.Succeeded) throw new InvalidOperationException("Failed to create user from Google login.");
-
-                var cart = new Cart { UserId = user.Id, CartItems = new List<CartItem>() };
-                _context.Carts.Add(cart);
-                await _context.SaveChangesAsync();
+                throw new UnauthorizedAccessException($"NewGoogleUser:{payload.Email}:{payload.Name}");
             }
             else
             {
-                // Kiểm tra trạng thái khóa tài khoản nếu người dùng đã tồn tại
-                var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
+                // Kiểm tra tình trạng khoá tài khoản nếu người dùng đã tồn tại
+                var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
                 var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
                 if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
                     throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
+                if (!user.EmailConfirmed)
+                {
+                    if (user.Name != payload.Name && !string.IsNullOrEmpty(payload.Name))
+                    {
+                        user.Name = payload.Name;
+                        await _userManager.UpdateAsync(user);
+                    }
+
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmationLink = $"{_configuration["Frontend:Url"]}/confirm-email?email={user.Email}&token={Uri.EscapeDataString(token)}";
+                    await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
+                        $"Your email was linked to a Google account. Please confirm your email by clicking this link: <a href='{confirmationLink}'>Confirm Email</a>");
+
+                    throw new UnauthorizedAccessException("Your email is not yet confirmed. A confirmation email has been sent to your inbox.");
+                }
             }
 
-            // Tải thông tin Role
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
-            var token = GenerateJwtToken(user);
-            return new TokenResponseDto { Token = token, RefreshToken = null };
+            var jwtToken = GenerateJwtToken(user);
+            _logger.LogInformation("Google token generated for {Email}: {Token}", payload.Email, jwtToken);
+
+            return jwtToken;
         }
 
         // Xem chi tiết profile theo ID
@@ -157,14 +175,34 @@ namespace Pet.Services
             if (await _userManager.FindByEmailAsync(registerDto.Email) != null)
                 throw new InvalidOperationException("Email already exists.");
 
+            // Kiểm tra DateOfBirth
+            var birthDate = registerDto.DateOfBirth;
+            var today = DateTime.UtcNow;
+            var age = today.Year - birthDate.Year;
+            if (birthDate > today.AddYears(-age)) age--; // Điều chỉnh nếu sinh nhật chưa đến
+
+            if (age < 15)
+                throw new InvalidOperationException("You must be at least 15 years old to register.");
+            if (age > 90)
+                throw new InvalidOperationException("Age cannot exceed 90 years.");
+
             var user = _mapper.Map<User>(registerDto);
             user.UserName = registerDto.Email;
             user.NormalizedUserName = registerDto.Email.ToUpper();
             user.NormalizedEmail = registerDto.Email.ToUpper();
-            user.EmailConfirmed = false;
-            user.RoleId = 3;
+            user.RoleId = 2;
             user.LockoutEnabled = false;
             user.LockReason = LockReason.None;
+
+            // Nếu từ Google, email đã được xác thực
+            if (registerDto.FromGoogle.HasValue && registerDto.FromGoogle.Value)
+            {
+                user.EmailConfirmed = true;
+            }
+            else
+            {
+                user.EmailConfirmed = false; 
+            }
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) throw new InvalidOperationException(result.Errors.First().Description);
@@ -173,10 +211,16 @@ namespace Pet.Services
             _context.Carts.Add(cart);
             await _context.SaveChangesAsync();
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = $"{_configuration["Frontend:Url"]}/confirm-email?email={user.Email}&token={Uri.EscapeDataString(token)}";
-            await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
-                $"Please confirm your email by clicking this link: <a href='{confirmationLink}'>Confirm Email</a>");
+            await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+
+            // Nếu không từ Google, gửi email xác nhận
+            if (!registerDto.FromGoogle.HasValue || !registerDto.FromGoogle.Value)
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"{_configuration["Frontend:Url"]}/confirm-email?email={user.Email}&token={Uri.EscapeDataString(token)}";
+                await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
+                    $"Please confirm your email by clicking this link: <a href='{confirmationLink}'>Confirm Email</a>");
+            }
 
             return _mapper.Map<ProfileDto>(user);
         }
@@ -240,14 +284,36 @@ namespace Pet.Services
             if (user == null) throw new KeyNotFoundException("User not found.");
 
             if (updateProfileDto.Name != null) user.Name = updateProfileDto.Name;
-            if (updateProfileDto.Email != null)
+            if (updateProfileDto.Email != null && updateProfileDto.Email != user.Email)
             {
+                if (await _userManager.FindByEmailAsync(updateProfileDto.Email) != null)
+                    throw new InvalidOperationException($"Email {updateProfileDto.Email} already exists.");
+
                 user.Email = updateProfileDto.Email;
                 user.UserName = updateProfileDto.Email;
                 user.NormalizedUserName = updateProfileDto.Email.ToUpper();
                 user.NormalizedEmail = updateProfileDto.Email.ToUpper();
+                user.EmailConfirmed = false;
+
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"{_configuration["Frontend:Url"]}/confirm-email?email={user.Email}&token={Uri.EscapeDataString(token)}";
+                await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
+                    $"Please confirm your email by clicking this link: <a href='{confirmationLink}'>Confirm Email</a>");
             }
-            if (updateProfileDto.DateOfBirth.HasValue) user.DateOfBirth = updateProfileDto.DateOfBirth.Value;
+            if (updateProfileDto.DateOfBirth.HasValue)
+            {
+                var birthDate = updateProfileDto.DateOfBirth.Value;
+                var today = DateTime.UtcNow;
+                var age = today.Year - birthDate.Year;
+                if (birthDate > today.AddYears(-age)) age--; // Điều chỉnh nếu sinh nhật chưa đến
+
+                if (age < 15)
+                    throw new InvalidOperationException("You must be at least 15 years old.");
+                if (age > 90)
+                    throw new InvalidOperationException("Age cannot exceed 90 years.");
+
+                user.DateOfBirth = birthDate;
+            }
             if (updateProfileDto.Gender.HasValue) user.Gender = updateProfileDto.Gender.Value;
             if (updateProfileDto.PhoneNumber != null) user.PhoneNumber = updateProfileDto.PhoneNumber;
             if (updateProfileDto.Address != null) user.Address = updateProfileDto.Address;
@@ -255,6 +321,8 @@ namespace Pet.Services
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) throw new InvalidOperationException("Failed to update profile.");
+
+            await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
             return _mapper.Map<ProfileDto>(user);
         }

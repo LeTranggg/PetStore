@@ -21,44 +21,43 @@ namespace Pet.Controllers
             _logger = logger;
         }
 
+        // POST: api/account/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             try
             {
-                var tokenResponse = await _accountService.LoginAsync(loginDto);
-                return Ok(tokenResponse);
+                var token = await _accountService.LoginAsync(loginDto);
+                _logger.LogInformation("Login response: {Token}", token);
+                return Ok(new { token }); // Trả về object với key "token"
             }
             catch (UnauthorizedAccessException ex)
             {
                 _logger.LogWarning("Login failed: {Message}", ex.Message);
-                return Unauthorized(ex.Message);
+                return Unauthorized(new { message = ex.Message });
             }
         }
 
+        // POST: api/account/google-login
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleDto googleDto)
         {
             try
             {
-                var tokenResponse = await _accountService.GoogleLoginAsync(googleDto);
-                return Ok(tokenResponse);
+                var token = await _accountService.GoogleLoginAsync(googleDto);
+                _logger.LogInformation("Google login response: {Token}", token);
+                return Ok(new { token }); // Trả về object với key "token"
             }
             catch (UnauthorizedAccessException ex)
             {
                 _logger.LogWarning("Google login failed: {Message}", ex.Message);
-                return Unauthorized(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogWarning("Google login failed: {Message}", ex.Message);
-                return BadRequest(ex.Message);
+                return Unauthorized(new { message = ex.Message });
             }
         }
 
+        // POST: api/account/register
         [HttpPost("register")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             try
             {
@@ -72,6 +71,7 @@ namespace Pet.Controllers
             }
         }
 
+        // GET: api/account/confirm-email
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
         {
@@ -95,6 +95,7 @@ namespace Pet.Controllers
             }
         }
 
+        // GET: api/account/1
         [HttpGet("{id}")]
         public async Task<ActionResult<ProfileDto>> GetProfile(int id)
         {
@@ -109,6 +110,7 @@ namespace Pet.Controllers
             }
         }
 
+        // POST: api/account/forgot-password
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
         {
@@ -124,6 +126,7 @@ namespace Pet.Controllers
             }
         }
 
+        // POST: api/account/reset-password
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
@@ -144,6 +147,7 @@ namespace Pet.Controllers
             }
         }
 
+        // PUT: api/account/profile
         [HttpPut("profile")]
         [Authorize]
         [Consumes("multipart/form-data")]
@@ -171,6 +175,7 @@ namespace Pet.Controllers
             }
         }
 
+        // POST: api/account/change-password
         [HttpPost("change-password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
@@ -197,6 +202,7 @@ namespace Pet.Controllers
             }
         }
 
+        // DELETE: api/account/delete-account
         [HttpDelete("delete-account")]
         [Authorize]
         public async Task<IActionResult> DeleteAccount()

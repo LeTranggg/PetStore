@@ -8,6 +8,8 @@ using Pet.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Pet.Dtos.User;
+using Pet.Dtos.Supplier;
+using Pet.Dtos.Account;
 
 namespace Pet.Services
 {
@@ -39,7 +41,9 @@ namespace Pet.Services
                 File = new FileDescription(image.FileName, stream),
                 PublicId = Guid.NewGuid().ToString()
             };
+
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
             return uploadResult.SecureUrl.ToString();
         }
 
@@ -79,6 +83,7 @@ namespace Pet.Services
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             var users = await _context.Users.Include(u => u.Role).ToListAsync();
+
             return _mapper.Map<IEnumerable<UserDto>>(users);
         }
 
@@ -87,7 +92,9 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
+
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -97,9 +104,20 @@ namespace Pet.Services
             if (await _userManager.FindByEmailAsync(createUserDto.Email) != null)
                 throw new InvalidOperationException($"Email {createUserDto.Email} already exists.");
 
-            var password = GenerateRandomPassword();
-            var user = _mapper.Map<User>(createUserDto);
+            // Kiểm tra DateOfBirth
+            var birthDate = createUserDto.DateOfBirth;
+            var today = DateTime.UtcNow;
+            var age = today.Year - birthDate.Year;
+            if (birthDate > today.AddYears(-age)) age--; // Điều chỉnh nếu sinh nhật chưa đến
 
+            if (age < 15)
+                throw new InvalidOperationException("You must be at least 15 years old to register.");
+            if (age > 90)
+                throw new InvalidOperationException("Age cannot exceed 90 years.");
+
+            var password = GenerateRandomPassword();
+
+            var user = _mapper.Map<User>(createUserDto);
             user.UserName = createUserDto.Email;
             user.NormalizedUserName = createUserDto.Email.ToUpper();
             user.NormalizedEmail = createUserDto.Email.ToUpper();
@@ -136,14 +154,30 @@ namespace Pet.Services
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
 
             if (updateUserDto.Name != null) user.Name = updateUserDto.Name;
-            if (updateUserDto.Email != null)
+            if (updateUserDto.Email != null && updateUserDto.Email != user.Email)
             {
+                if (await _userManager.FindByEmailAsync(updateUserDto.Email) != null)
+                    throw new InvalidOperationException($"Email {updateUserDto.Email} already exists.");
+
                 user.Email = updateUserDto.Email;
                 user.UserName = updateUserDto.Email;
                 user.NormalizedUserName = updateUserDto.Email.ToUpper();
                 user.NormalizedEmail = updateUserDto.Email.ToUpper();
             }
-            if (updateUserDto.DateOfBirth.HasValue) user.DateOfBirth = updateUserDto.DateOfBirth.Value;
+            if (updateUserDto.DateOfBirth.HasValue)
+            {
+                var birthDate = updateUserDto.DateOfBirth.Value;
+                var today = DateTime.UtcNow;
+                var age = today.Year - birthDate.Year;
+                if (birthDate > today.AddYears(-age)) age--; // Điều chỉnh nếu sinh nhật chưa đến
+
+                if (age < 15)
+                    throw new InvalidOperationException("You must be at least 15 years old.");
+                if (age > 90)
+                    throw new InvalidOperationException("Age cannot exceed 90 years.");
+
+                user.DateOfBirth = birthDate;
+            }
             if (updateUserDto.Gender.HasValue) user.Gender = updateUserDto.Gender.Value;
             if (updateUserDto.PhoneNumber != null) user.PhoneNumber = updateUserDto.PhoneNumber;
             if (updateUserDto.Address != null) user.Address = updateUserDto.Address;
@@ -155,6 +189,7 @@ namespace Pet.Services
             if (!result.Succeeded) throw new InvalidOperationException(result.Errors.First().Description);
 
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -165,6 +200,7 @@ namespace Pet.Services
             if (user == null) return false;
 
             var result = await _userManager.DeleteAsync(user);
+
             return result.Succeeded;
         }
 
@@ -204,6 +240,7 @@ namespace Pet.Services
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) throw new InvalidOperationException(result.Errors.First().Description);
+
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
             if (result.Succeeded && user.LockoutEnd != null)
@@ -211,6 +248,7 @@ namespace Pet.Services
                 await _emailService.SendEmailAsync(user.Email, "Account Locked",
                     $"Your account has been locked until {user.LockoutEnd.Value:yyyy-MM-dd HH:mm:ss} due to: {reason}");
             }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -226,6 +264,7 @@ namespace Pet.Services
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) throw new InvalidOperationException(result.Errors.First().Description);
+
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
             // Gửi email thông báo
@@ -234,6 +273,7 @@ namespace Pet.Services
                 await _emailService.SendEmailAsync(user.Email, "Account Unlocked",
                     "Your account has been unlocked and you can now log in again.");
             }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -249,6 +289,7 @@ namespace Pet.Services
             if (!result.Succeeded) throw new InvalidOperationException(result.Errors.First().Description);
 
             await _emailService.SendEmailAsync(user.Email, "Your New Password", $"Your new password is: {newPassword}");
+
             return newPassword;
         }
     }

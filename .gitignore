@@ -360,8 +360,8 @@ MigrationBackup/
 .ionide/
 
 # Fody - auto-generated XML schema
-FodyWeavers.xsdappsettings.json
 ApplicationDbContext.cs
 MappingProfile.cs
 Program.cs
 Migrations/
+appsettings.json
