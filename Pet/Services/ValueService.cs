@@ -18,12 +18,24 @@ namespace Pet.Services
             _mapper = mapper;
         }
 
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
         // Xem danh sách values 
         public async Task<IEnumerable<ValueDto>> GetAllValuesAsync()
         {
-            var value = await _context.Values.Include(v => v.Feature).ToListAsync();
+            var values = await _context.Values.Include(v => v.Feature).ToListAsync();
 
-            return _mapper.Map<IEnumerable<ValueDto>>(value);
+            return _mapper.Map<IEnumerable<ValueDto>>(values);
         }
 
         // Xem chi tiết value theo ID
@@ -38,13 +50,14 @@ namespace Pet.Services
         }
 
         // Tạo value mới
-        public async Task<ValueDto> CreateValueAsync(CreateValueDto createValueDto)
+        public async Task<ValueDto> CreateValueAsync(int userId, CreateValueDto createValueDto)
         {
+            await CheckUserAsync(userId);
+
             if (await _context.Values.AnyAsync(c => c.Name == createValueDto.Name))
                 throw new InvalidOperationException($"Value with name '{createValueDto.Name}' already exists.");
 
             var value = _mapper.Map<Value>(createValueDto);
-            value.FeatureId = createValueDto.FeatureId;
 
             _context.Values.Add(value);
             await _context.SaveChangesAsync();
@@ -55,15 +68,18 @@ namespace Pet.Services
         }
 
         // Cập nhật value
-        public async Task<ValueDto> UpdateValueAsync(int id, UpdateValueDto updateValueDto)
+        public async Task<ValueDto> UpdateValueAsync(int userId, int id, UpdateValueDto updateValueDto)
         {
+            await CheckUserAsync(userId);
+
             var value = await _context.Values.FindAsync(id);
             if (value == null) throw new KeyNotFoundException($"Value with ID {id} not found.");
             
-            if (updateValueDto.Name != null)
+            if (updateValueDto.Name != null && updateValueDto.Name != value.Name)
             {
                 if (await _context.Values.AnyAsync(c => c.Name == updateValueDto.Name))
                     throw new InvalidOperationException($"Value with name '{updateValueDto.Name}' already exists.");
+                
                 value.Name = updateValueDto.Name;
             }
             if (updateValueDto.FeatureId.HasValue) value.FeatureId = updateValueDto.FeatureId.Value;
@@ -71,12 +87,16 @@ namespace Pet.Services
             _context.Values.Update(value);
             await _context.SaveChangesAsync();
 
+            await _context.Entry(value).Reference(v => v.Feature).LoadAsync();
+
             return _mapper.Map<ValueDto>(value);
         }
 
         // Xoá value
-        public async Task<bool> DeleteValueAsync(int id)
+        public async Task<bool> DeleteValueAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var value = await _context.Values.FindAsync(id);
             if (value == null) return false;
 

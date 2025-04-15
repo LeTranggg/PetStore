@@ -97,6 +97,7 @@ namespace Pet.Controllers
 
         // GET: api/account/1
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<ProfileDto>> GetProfile(int id)
         {
             try

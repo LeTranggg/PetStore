@@ -9,7 +9,7 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -19,11 +19,21 @@ namespace Pet.Controllers
             _userService = userService;
         }
 
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            return userId;
+        }
+
         // GET: api/user
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            return Ok(await _userService.GetAllUsersAsync());
+            var id = GetUserId();
+            return Ok(await _userService.GetAllUsersAsync(id));
         }
 
         // GET: api/user/1
@@ -47,7 +57,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var user = await _userService.CreateUserAsync(createUserDto);
+                var id = GetUserId();
+                var user = await _userService.CreateUserAsync(id, createUserDto);
                 return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
             }
             catch (InvalidOperationException ex) 
@@ -93,19 +104,25 @@ namespace Pet.Controllers
 
         // POST: api/user/1/lock
         [HttpPost("{id}/lock")]
-        public async Task<ActionResult<UserDto>> LockUser(int id, LockReason reason)
+        public async Task<ActionResult<UserDto>> LockUser(int id, [FromBody] string reason)
         {
+            Console.WriteLine($"Received lock request for user {id} with reason: {reason}");
             try
             {
-                return Ok(await _userService.LockUserAsync(id, reason));
+                if (string.IsNullOrEmpty(reason) || !Enum.TryParse<LockReason>(reason, true, out var parsedReason))
+                {
+                    return BadRequest($"Invalid lock reason: {reason}");
+                }
+                Console.WriteLine($"Parsed reason: {parsedReason}"); // Log giá trị sau khi parse
+                return Ok(await _userService.LockUserAsync(id, parsedReason));
             }
-            catch (KeyNotFoundException ex) 
-            { 
-                return NotFound(ex.Message); 
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
-            catch (InvalidOperationException ex) 
-            { 
-                return BadRequest(ex.Message); 
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
@@ -133,7 +150,7 @@ namespace Pet.Controllers
         {
             try
             {
-                await _userService.ResetPasswordAsync(id); // Không trả về mật khẩu
+                await _userService.ResetPasswordAsync(id);
                 return Ok($"Password reset successfully.");
             }
             catch (KeyNotFoundException ex) 

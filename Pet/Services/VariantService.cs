@@ -22,6 +22,18 @@ namespace Pet.Services
             _cloudinary = cloudinary;
         }
 
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
         // Tải ảnh lên Cloudinary
         private async Task<string> UploadImageToCloudinaryAsync(IFormFile image)
         {
@@ -42,9 +54,12 @@ namespace Pet.Services
         // Xem danh sách variants
         public async Task<IEnumerable<VariantDto>> GetAllVariantsAsync()
         {
-            var variant = await _context.Variants.Include(v => v.Product).ToListAsync();
+            var variants = await _context.Variants
+                .Include(v => v.Product)
+                .Include(v => v.VariantValues).ThenInclude(vv => vv.Value) // Include Value để lấy Name
+                .ToListAsync();
 
-            return _mapper.Map<IEnumerable<VariantDto>>(variant);
+            return _mapper.Map<IEnumerable<VariantDto>>(variants);
         }
 
         // Xem chi tiết variant theo ID
@@ -64,8 +79,10 @@ namespace Pet.Services
         }
 
         // Tạo variant mới
-        public async Task<VariantDto> CreateVariantAsync(CreateVariantDto createVariantDto)
+        public async Task<VariantDto> CreateVariantAsync(int userId, CreateVariantDto createVariantDto)
         {
+            await CheckUserAsync(userId);
+
             var variant = _mapper.Map<Variant>(createVariantDto);
 
             if (createVariantDto.Image != null)
@@ -88,11 +105,11 @@ namespace Pet.Services
         }
 
         // Cập nhật variant
-        public async Task<VariantDto> UpdateVariantAsync(int id, UpdateVariantDto updateVariantDto)
+        public async Task<VariantDto> UpdateVariantAsync(int userId, int id, UpdateVariantDto updateVariantDto)
         {
-            var variant = await _context.Variants
-                .Include(v => v.VariantValues)
-                .FirstOrDefaultAsync(v => v.Id == id);
+            await CheckUserAsync(userId);
+
+            var variant = await _context.Variants.Include(v => v.VariantValues).FirstOrDefaultAsync(v => v.Id == id);
             if (variant == null) throw new KeyNotFoundException($"Variant with ID {id} not found.");
 
             Console.WriteLine($"Before update: VariantValues count = {variant.VariantValues?.Count ?? 0}");
@@ -109,11 +126,9 @@ namespace Pet.Services
             if (updateVariantDto.ValueIds != null)
             {
                 Console.WriteLine($"New ValueIds: {string.Join(", ", updateVariantDto.ValueIds)}");
-                if (variant.VariantValues != null)
-                    _context.VariantValues.RemoveRange(variant.VariantValues);
+                if (variant.VariantValues != null) _context.VariantValues.RemoveRange(variant.VariantValues);
                 variant.VariantValues = updateVariantDto.ValueIds
-                    .Select(valueId => new VariantValue { VariantId = id, ValueId = valueId })
-                    .ToList();
+                    .Select(valueId => new VariantValue { VariantId = id, ValueId = valueId }).ToList();
                 Console.WriteLine($"After update: VariantValues count = {variant.VariantValues.Count}");
             }
 
@@ -123,14 +138,18 @@ namespace Pet.Services
             await _context.Entry(variant).Reference(v => v.Product).LoadAsync();
             await _context.Entry(variant).Collection(v => v.VariantValues).LoadAsync();
             foreach (var vv in variant.VariantValues)
+            {
                 await _context.Entry(vv).Reference(vv => vv.Value).LoadAsync();
-
+            }
+            
             return _mapper.Map<VariantDto>(variant);
         }
 
         // Xoá variant
-        public async Task<bool> DeleteVariantAsync(int id)
+        public async Task<bool> DeleteVariantAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var variant = await _context.Variants.FindAsync(id);
             if (variant == null) return false;
 

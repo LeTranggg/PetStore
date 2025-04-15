@@ -8,7 +8,6 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Staff")]
     public class VariantController : ControllerBase
     {
         private readonly IVariantService _variantService;
@@ -16,6 +15,15 @@ namespace Pet.Controllers
         public VariantController(IVariantService variantService)
         {
             _variantService = variantService;
+        }
+
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            return userId;
         }
 
         // GET: api/variant
@@ -42,11 +50,13 @@ namespace Pet.Controllers
 
         // POST: api/variant
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<VariantDto>> CreateVariant([FromForm] CreateVariantDto createVariantDto)
         {
             try
             {
-                var variant = await _variantService.CreateVariantAsync(createVariantDto);
+                var userId = GetUserId();
+                var variant = await _variantService.CreateVariantAsync(userId, createVariantDto);
                 return CreatedAtAction(nameof(GetVariant), new { id = variant.Id }, variant);
             }
             catch (InvalidOperationException ex)
@@ -57,11 +67,13 @@ namespace Pet.Controllers
 
         // PUT: api/variant/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<VariantDto>> UpdateVariant(int id, [FromForm] UpdateVariantDto updateVariantDto)
         {
             try
             {
-                var variant = await _variantService.UpdateVariantAsync(id, updateVariantDto);
+                var userId = GetUserId();
+                var variant = await _variantService.UpdateVariantAsync(userId, id, updateVariantDto);
                 return Ok(variant);
             }
             catch (KeyNotFoundException ex)
@@ -76,11 +88,13 @@ namespace Pet.Controllers
 
         // DELETE: api/variant/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteVariant(int id)
         {
             try
             {
-                var variant = await _variantService.DeleteVariantAsync(id);
+                var userId = GetUserId();
+                var variant = await _variantService.DeleteVariantAsync(userId, id);
                 if (!variant) return NotFound($"Variant with ID {id} not found.");
                 return NoContent();
             }

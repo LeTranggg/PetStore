@@ -9,7 +9,7 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class SupplierController : ControllerBase
     {
         private readonly ISupplierService _supplierService;
@@ -19,11 +19,21 @@ namespace Pet.Controllers
             _supplierService = supplierService;
         }
 
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            return userId;
+        }
+
         // GET: api/supplier
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SupplierDto>>> GetAllSuppliers()
         {
-            return Ok(await _supplierService.GetAllSuppliersAsync());
+            var userId = GetUserId();
+            return Ok(await _supplierService.GetAllSuppliersAsync(userId));
         }
 
         // GET: api/supplier/1
@@ -32,7 +42,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var supplier = await _supplierService.GetSupplierByIdAsync(id);
+                var userId = GetUserId();
+                var supplier = await _supplierService.GetSupplierByIdAsync(userId, id);
                 return Ok(supplier);
             } 
             catch (KeyNotFoundException ex)
@@ -47,7 +58,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var supplier = await _supplierService.CreateSupplierAsync(createSupplierDto);
+                var userId = GetUserId();
+                var supplier = await _supplierService.CreateSupplierAsync(userId, createSupplierDto);
                 return CreatedAtAction(nameof(GetSupplier), new { id = supplier.Id }, supplier);
             }
             catch (InvalidOperationException ex)
@@ -62,7 +74,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var supplier = await _supplierService.UpdateSupplierAsync(id, updateSupplierDto);
+                var userId = GetUserId();
+                var supplier = await _supplierService.UpdateSupplierAsync(userId, id, updateSupplierDto);
                 return Ok(supplier);
             }
             catch (KeyNotFoundException ex)
@@ -81,7 +94,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var supplier = await _supplierService.DeleteSupplierAsync(id);
+                var userId = GetUserId();
+                var supplier = await _supplierService.DeleteSupplierAsync(userId, id);
                 if (!supplier) return NotFound($"Supplier with ID {id} not found.");
                 return NoContent();
             }

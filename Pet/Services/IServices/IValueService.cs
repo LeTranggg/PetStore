@@ -6,8 +6,8 @@ namespace Pet.Services.IServices
     {
         Task<IEnumerable<ValueDto>> GetAllValuesAsync();
         Task<ValueDto> GetValueByIdAsync(int id);
-        Task<ValueDto> CreateValueAsync(CreateValueDto createValueDto);
-        Task<ValueDto> UpdateValueAsync(int id, UpdateValueDto updateValueDto);
-        Task<bool> DeleteValueAsync(int id);
+        Task<ValueDto> CreateValueAsync(int userId, CreateValueDto createValueDto);
+        Task<ValueDto> UpdateValueAsync(int userId, int id, UpdateValueDto updateValueDto);
+        Task<bool> DeleteValueAsync(int userId, int id);
     }
 }

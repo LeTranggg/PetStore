@@ -23,7 +23,7 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        public DateTime DateCreated { get; set; } = DateTime.Now;
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         [Required]
         public ReviewStatus Status { get; set; } = ReviewStatus.Unreported;
         [MaxLength(200)]

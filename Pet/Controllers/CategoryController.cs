@@ -9,7 +9,7 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -19,11 +19,21 @@ namespace Pet.Controllers
             _categoryService = categoryService;
         }
 
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            return userId;
+        }
+
         // GET: api/category
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
         {
-            return Ok(await _categoryService.GetAllCategoriesAsync());
+            var userId = GetUserId();
+            return Ok(await _categoryService.GetAllCategoriesAsync(userId));
         }
 
         // GET: api/category/1
@@ -32,7 +42,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var category = await _categoryService.GetCategoryByIdAsync(id);
+                var userId = GetUserId();
+                var category = await _categoryService.GetCategoryByIdAsync(userId, id);
                 return Ok(category);
             }
             catch (KeyNotFoundException ex)
@@ -47,7 +58,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var category = await _categoryService.CreateCategoryAsync(createCategoryDto);
+                var userId = GetUserId();
+                var category = await _categoryService.CreateCategoryAsync(userId, createCategoryDto);
                 return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
             }
             catch (InvalidOperationException ex)
@@ -62,7 +74,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var category = await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
+                var userId = GetUserId();
+                var category = await _categoryService.UpdateCategoryAsync(userId, id, updateCategoryDto);
                 return Ok(category);
             }
             catch (KeyNotFoundException ex)
@@ -81,7 +94,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var category = await _categoryService.DeleteCategoryAsync(id);
+                var userId = GetUserId();
+                var category = await _categoryService.DeleteCategoryAsync(userId, id);
                 if (!category) return NotFound($"Category with ID {id} not found.");
                 return NoContent();
             }

@@ -9,7 +9,6 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Admin")]
     public class ValueController : ControllerBase
     {
         private readonly IValueService _valueService;
@@ -17,6 +16,15 @@ namespace Pet.Controllers
         public ValueController(IValueService valueService)
         {
             _valueService = valueService;
+        }
+
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            return userId;
         }
 
         // GET: api/value
@@ -43,11 +51,13 @@ namespace Pet.Controllers
 
         // POST: api/value
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ValueDto>> CreateValue([FromBody] CreateValueDto createValueDto)
         {
             try
             {
-                var value = await _valueService.CreateValueAsync(createValueDto);
+                var userId = GetUserId();
+                var value = await _valueService.CreateValueAsync(userId, createValueDto);
                 return CreatedAtAction(nameof(GetValue), new { id = value.Id }, value);
             }
             catch (InvalidOperationException ex)
@@ -58,11 +68,13 @@ namespace Pet.Controllers
 
         // PUT: api/value/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ValueDto>> UpdateValue(int id, [FromBody] UpdateValueDto updateValueDto)
         {
             try
             {
-                var value = await _valueService.UpdateValueAsync(id, updateValueDto);
+                var userId = GetUserId();
+                var value = await _valueService.UpdateValueAsync(userId, id, updateValueDto);
                 return Ok(value);
             }
             catch (KeyNotFoundException ex)
@@ -77,11 +89,13 @@ namespace Pet.Controllers
 
         // DETELE: api/value/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteValue(int id)
         {
             try
             {
-                var value = await _valueService.DeleteValueAsync(id);
+                var userId = GetUserId();
+                var value = await _valueService.DeleteValueAsync(userId, id);
                 if (!value) return NotFound($"Value with ID {id} not found.");
                 return NoContent();
             }

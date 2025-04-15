@@ -8,7 +8,6 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Staff")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -18,11 +17,23 @@ namespace Pet.Controllers
             _productService = productService;
         }
 
+        // Lấy userId từ token
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user ID in token.");
+            }
+            return userId;
+        }
+
         // GET: api/product
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts()
         {
-            return Ok(await _productService.GetAllProductsAsync());
+            var userId = GetUserId();
+            return Ok(await _productService.GetAllProductsAsync(userId));
         }
 
         // GET: api/product/1
@@ -31,7 +42,8 @@ namespace Pet.Controllers
         {
             try
             {
-                var product = await _productService.GetProductByIdAsync(id);
+                var userId = GetUserId();
+                var product = await _productService.GetProductByIdAsync(userId, id);
                 return Ok(product);
             }
             catch (KeyNotFoundException ex)
@@ -42,11 +54,13 @@ namespace Pet.Controllers
 
         // POST: api/product
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ProductDto>> CreateProduct([FromForm] CreateProductDto createProductDto)
         {
             try
             {
-                var product = await _productService.CreateProductAsync(createProductDto);
+                var userId = GetUserId();
+                var product = await _productService.CreateProductAsync(userId, createProductDto);
                 return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
             }
             catch (InvalidOperationException ex)
@@ -57,11 +71,13 @@ namespace Pet.Controllers
 
         // PUT: api/product/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ProductDto>> UpdateProduct(int id, [FromForm] UpdateProductDto updateProductDto)
         {
             try
             {
-                var product = await _productService.UpdateProductAsync(id, updateProductDto);
+                var userId = GetUserId();
+                var product = await _productService.UpdateProductAsync(userId, id, updateProductDto);
                 return Ok(product);
             }
             catch (KeyNotFoundException ex)
@@ -76,11 +92,13 @@ namespace Pet.Controllers
 
         // DELETE: api/product/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             try
             {
-                var product = await _productService.DeleteProductAsync(id);
+                var userId = GetUserId();
+                var product = await _productService.DeleteProductAsync(userId, id);
                 if (!product) return NotFound($"Product with ID {id} not found.");
                 return NoContent();
             }

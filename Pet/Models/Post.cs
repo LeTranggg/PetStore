@@ -8,7 +8,7 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        public DateTime DateCreated { get; set; } = DateTime.Now;
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         [Required]
         [MaxLength(200)]
         public string Title { get; set; }

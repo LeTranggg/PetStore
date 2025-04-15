@@ -24,19 +24,9 @@ namespace Pet.Models
     {
         [Key]
         public int Id { get; set; }
-        public DateTime DateCreated { get; set; } = DateTime.Now;
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         [Required]
         public decimal CoinEarned { get; set; }
-        [Required]
-        [MaxLength(200)]
-        public string ShippingAddress { get; set; }
-        [Required]
-        [MaxLength(100)]
-        public string RecipientName { get; set; }
-        [Required]
-        [Phone]
-        [MaxLength(15)]
-        public string RecipientPhone { get; set; }
         [Required]
         public decimal TotalPrice { get; set; }
         [Required]

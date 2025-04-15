@@ -6,8 +6,8 @@ namespace Pet.Services.IServices
     {
         Task<IEnumerable<VariantDto>> GetAllVariantsAsync();
         Task<VariantDto> GetVariantByIdAsync(int id);
-        Task<VariantDto> CreateVariantAsync(CreateVariantDto createVariantDto);
-        Task<VariantDto> UpdateVariantAsync(int id, UpdateVariantDto updateVariantDto);
-        Task<bool> DeleteVariantAsync(int id);
+        Task<VariantDto> CreateVariantAsync(int userId, CreateVariantDto createVariantDto);
+        Task<VariantDto> UpdateVariantAsync(int userId, int id, UpdateVariantDto updateVariantDto);
+        Task<bool> DeleteVariantAsync(int userId, int id);
     }
 }

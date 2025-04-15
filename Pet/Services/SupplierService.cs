@@ -24,6 +24,18 @@ namespace Pet.Services
             _cloudinary = cloudinary;
         }
 
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
         // Tải ảnh lên Cloudinary
         private async Task<string> UploadImageToCloudinaryAsync(IFormFile image)
         {
@@ -42,16 +54,20 @@ namespace Pet.Services
         }
 
         // Xem danh sách suppliers
-        public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
+        public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync(int userId)
         {
-            var supplier = await _context.Suppliers.ToListAsync();
+            await CheckUserAsync(userId);
 
-            return _mapper.Map<IEnumerable<SupplierDto>>(supplier);
+            var suppliers = await _context.Suppliers.ToListAsync();
+
+            return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
         }
 
         // Xem chi tiết supplier theo ID
-        public async Task<SupplierDto> GetSupplierByIdAsync(int id)
+        public async Task<SupplierDto> GetSupplierByIdAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {id} not found.");
 
@@ -59,8 +75,10 @@ namespace Pet.Services
         }
 
         // Tạo supplier mới
-        public async Task<SupplierDto> CreateSupplierAsync(CreateSupplierDto createSupplierDto)
+        public async Task<SupplierDto> CreateSupplierAsync(int userId, CreateSupplierDto createSupplierDto)
         {
+            await CheckUserAsync(userId);
+
             if (await _context.Suppliers.AnyAsync(s => s.Email == createSupplierDto.Email))
                 throw new InvalidOperationException($"Email {createSupplierDto.Email} already exists.");
 
@@ -76,16 +94,19 @@ namespace Pet.Services
         }
 
         // Cập nhật supplier
-        public async Task<SupplierDto> UpdateSupplierAsync(int id, UpdateSupplierDto updateSupplierDto)
+        public async Task<SupplierDto> UpdateSupplierAsync(int userId, int id, UpdateSupplierDto updateSupplierDto)
         {
+            await CheckUserAsync(userId);
+
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {id} not found.");
 
             if (updateSupplierDto.Name != null) supplier.Name = updateSupplierDto.Name;
-            if (updateSupplierDto.Email != null)
+            if (updateSupplierDto.Email != null && updateSupplierDto.Email != supplier.Email)
             {
                 if (await _context.Suppliers.AnyAsync(s => s.Email == updateSupplierDto.Email))
                     throw new InvalidOperationException($"Email {updateSupplierDto.Email} already exists.");
+                
                 supplier.Email = updateSupplierDto.Email;
             }
             if (updateSupplierDto.PhoneNumber != null) supplier.PhoneNumber = updateSupplierDto.PhoneNumber;
@@ -99,8 +120,10 @@ namespace Pet.Services
         }
 
         // Xoá supplier
-        public async Task<bool> DeleteSupplierAsync (int id)
+        public async Task<bool> DeleteSupplierAsync (int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var supplier = await _context.Suppliers.FindAsync (id);
             if (supplier == null) return false;
 

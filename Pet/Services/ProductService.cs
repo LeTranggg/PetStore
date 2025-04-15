@@ -23,6 +23,18 @@ namespace Pet.Services
             _cloudinary = cloudinary;
         }
 
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
         // Tải ảnh lên Cloudinary
         private async Task<string> UploadImageToCloudinaryAsync(IFormFile image)
         {
@@ -43,9 +55,13 @@ namespace Pet.Services
         // Xem danh sách products
         public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
         {
-            var product = await _context.Products.Include(p => p.Category).Include(p => p.Supplier).ToListAsync();
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .Include(p => p.Variants).ThenInclude(v => v.VariantValues).ThenInclude(vv => vv.Value).ThenInclude(vf => vf.Feature) // Include Value để lấy Name
+                .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ProductDto>>(product);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
         // Xem chi tiết product theo ID
@@ -56,13 +72,18 @@ namespace Pet.Services
 
             await _context.Entry(product).Reference(p => p.Category).LoadAsync();
             await _context.Entry(product).Reference(p => p.Supplier).LoadAsync();
-            
+            await _context.Entry(product).Collection(p => p.Variants).Query()
+                                         .Include(v => v.VariantValues).ThenInclude(vv => vv.Value)
+                                         .LoadAsync(); // Load Variants với VariantValues và Value
+
             return _mapper.Map<ProductDto>(product);
         }
 
         // Tạo product mới
-        public async Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto)
+        public async Task<ProductDto> CreateProductAsync(int userId, CreateProductDto createProductDto)
         {
+            await CheckUserAsync(userId);
+
             if (await _context.Products.AnyAsync(s => s.Name == createProductDto.Name))
                 throw new InvalidOperationException($"Product with mame '{createProductDto.Name}' already exists.");
 
@@ -76,20 +97,26 @@ namespace Pet.Services
 
             await _context.Entry(product).Reference(p => p.Category).LoadAsync();
             await _context.Entry(product).Reference(p => p.Supplier).LoadAsync();
+            await _context.Entry(product).Collection(p => p.Variants).Query()
+                                         .Include(v => v.VariantValues).ThenInclude(vv => vv.Value)
+                                         .LoadAsync(); // Load Variants với VariantValues và Value
 
             return _mapper.Map<ProductDto>(product);
         }
 
         // Cập nhật product
-        public async Task<ProductDto> UpdateProductAsync(int id, UpdateProductDto updateProductDto)
+        public async Task<ProductDto> UpdateProductAsync(int userId, int id, UpdateProductDto updateProductDto)
         {
+            await CheckUserAsync(userId);
+
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new KeyNotFoundException($"Product with ID {id} not found.");
 
-            if (updateProductDto.Name != null)
+            if (updateProductDto.Name != null && updateProductDto.Name != product.Name)
             {
                 if (await _context.Products.AnyAsync(s => s.Name == updateProductDto.Name))
                     throw new InvalidOperationException($"Product with name '{updateProductDto.Name}' already exists.");
+
                 product.Name = updateProductDto.Name;
             }
             if (updateProductDto.Description != null) product.Description = updateProductDto.Description;
@@ -103,13 +130,18 @@ namespace Pet.Services
 
             await _context.Entry(product).Reference(p => p.Category).LoadAsync();
             await _context.Entry(product).Reference(p => p.Supplier).LoadAsync();
+            await _context.Entry(product).Collection(p => p.Variants).Query()
+                                         .Include(v => v.VariantValues).ThenInclude(vv => vv.Value)
+                                         .LoadAsync();
 
             return _mapper.Map<ProductDto>(product);
         }
 
         // Xoá product
-        public async Task<bool> DeleteProductAsync(int id)
+        public async Task<bool> DeleteProductAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var product = await _context.Products.FindAsync(id);
             if (product == null) return false;
 

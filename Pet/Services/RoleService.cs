@@ -18,17 +18,33 @@ namespace Pet.Services
             _mapper = mapper;
         }
 
-        // Xem danh sách roles
-        public async Task<IEnumerable<RoleDto>> GetAllRolesAsync()
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
         {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
+        // Xem danh sách roles
+        public async Task<IEnumerable<RoleDto>> GetAllRolesAsync(int userId)
+        {
+            await CheckUserAsync(userId);
+
             var roles = await _context.Roles.ToListAsync();
 
             return _mapper.Map<IEnumerable<RoleDto>>(roles);
         }
 
         // Xem chi tiết role theo ID
-        public async Task<RoleDto> GetRoleByIdAsync(int id)
+        public async Task<RoleDto> GetRoleByIdAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var role = await _context.Roles.FindAsync(id);
             if (role == null) throw new KeyNotFoundException($"Role with ID {id} not found.");
 
@@ -36,8 +52,10 @@ namespace Pet.Services
         }
 
         // Tạo role mới
-        public async Task<RoleDto> CreateRoleAsync(UpdateRoleDto createRoleDto)
+        public async Task<RoleDto> CreateRoleAsync(int userId, UpdateRoleDto createRoleDto)
         {
+            await CheckUserAsync(userId);
+
             // Kiểm tra xem tên role đã tồn tại chưa
             if (await _context.Roles.AnyAsync(r => r.Name == createRoleDto.Name))
                 throw new InvalidOperationException($"Role with name '{createRoleDto.Name}' already exists.");
@@ -52,8 +70,10 @@ namespace Pet.Services
         }
 
         // Cập nhật role
-        public async Task<RoleDto> UpdateRoleAsync(int id, UpdateRoleDto updateRoleDto)
+        public async Task<RoleDto> UpdateRoleAsync(int userId, int id, UpdateRoleDto updateRoleDto)
         {
+            await CheckUserAsync(userId);
+
             var role = await _context.Roles.FindAsync(id);
             if (role == null) throw new KeyNotFoundException($"Role with ID {id} not found.");
 
@@ -61,8 +81,7 @@ namespace Pet.Services
             if (await _context.Roles.AnyAsync(r => r.Name == updateRoleDto.Name && r.Id != id))
                 throw new InvalidOperationException($"Role with name '{updateRoleDto.Name}' already exists.");
 
-            _mapper.Map(updateRoleDto, role);
-
+            role.Name = updateRoleDto.Name;
             role.NormalizedName = updateRoleDto.Name.ToUpper(); // Cập nhật NormalizedName
 
             _context.Roles.Update(role);
@@ -72,8 +91,10 @@ namespace Pet.Services
         }
 
         // Xóa role
-        public async Task<bool> DeleteRoleAsync(int id)
+        public async Task<bool> DeleteRoleAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var role = await _context.Roles.FindAsync(id);
             if (role == null) return false;
 

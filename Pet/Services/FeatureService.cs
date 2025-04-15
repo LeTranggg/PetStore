@@ -18,12 +18,24 @@ namespace Pet.Services
             _mapper = mapper;
         }
 
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
         // Xem danh sách features 
         public async Task<IEnumerable<FeatureDto>> GetAllFeaturesAsync()
         {
-            var feature = await _context.Features.ToListAsync();
+            var features = await _context.Features.ToListAsync();
 
-            return _mapper.Map<IEnumerable<FeatureDto>>(feature);
+            return _mapper.Map<IEnumerable<FeatureDto>>(features);
         }
 
         // Xem chi tiết feature theo ID
@@ -36,8 +48,10 @@ namespace Pet.Services
         }
 
         // Tạo feature mới
-        public async Task<FeatureDto> CreateFeatureAsync(UpdateFeatureDto createFeatureDto)
+        public async Task<FeatureDto> CreateFeatureAsync(int userId, UpdateFeatureDto createFeatureDto)
         {
+            await CheckUserAsync(userId);
+
             if (await _context.Features.AnyAsync(c => c.Name == createFeatureDto.Name))
                 throw new InvalidOperationException($"Feature with name '{createFeatureDto.Name}' already exists.");
 
@@ -51,15 +65,17 @@ namespace Pet.Services
         }
 
         // Cập nhật feature
-        public async Task<FeatureDto> UpdateFeatureAsync(int id, UpdateFeatureDto updateFeatureDto)
+        public async Task<FeatureDto> UpdateFeatureAsync(int userId, int id, UpdateFeatureDto updateFeatureDto)
         {
+            await CheckUserAsync(userId);
+
             var feature = await _context.Features.FindAsync(id);
             if (feature == null) throw new KeyNotFoundException($"Feature with ID {id} not found.");
 
             if (await _context.Features.AnyAsync(c => c.Name == updateFeatureDto.Name))
                 throw new InvalidOperationException($"Feature with name '{updateFeatureDto.Name}' already exists.");
 
-            _mapper.Map(updateFeatureDto, feature);
+            feature.Name = updateFeatureDto.Name;
 
             _context.Features.Update(feature);
             await _context.SaveChangesAsync();
@@ -68,8 +84,10 @@ namespace Pet.Services
         }
 
         // Xoá feature
-        public async Task<bool> DeleteFeatureAsync(int id)
+        public async Task<bool> DeleteFeatureAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var feature = await _context.Features.FindAsync(id);
             if (feature == null) return false;
 

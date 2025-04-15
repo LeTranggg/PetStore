@@ -8,8 +8,6 @@ using Pet.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Pet.Dtos.User;
-using Pet.Dtos.Supplier;
-using Pet.Dtos.Account;
 
 namespace Pet.Services
 {
@@ -28,6 +26,18 @@ namespace Pet.Services
             _mapper = mapper;
             _emailService = emailService;
             _cloudinary = cloudinary;
+        }
+
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
         }
 
         // Tải ảnh lên Cloudinary
@@ -80,8 +90,10 @@ namespace Pet.Services
         }
 
         // Xem danh sách users
-        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync(int id)
         {
+            await CheckUserAsync(id);
+
             var users = await _context.Users.Include(u => u.Role).ToListAsync();
 
             return _mapper.Map<IEnumerable<UserDto>>(users);
@@ -93,14 +105,21 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
 
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
             return _mapper.Map<UserDto>(user);
         }
 
         // Tạo user mới
-        public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
+        public async Task<UserDto> CreateUserAsync(int id, CreateUserDto createUserDto)
         {
+            await CheckUserAsync(id);
+
             if (await _userManager.FindByEmailAsync(createUserDto.Email) != null)
                 throw new InvalidOperationException($"Email {createUserDto.Email} already exists.");
 
@@ -144,6 +163,8 @@ namespace Pet.Services
             // Gửi email chứa mật khẩu
             await _emailService.SendEmailAsync(user.Email, "Your Account Password", $"Your password is: {password}");
 
+            await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -152,6 +173,11 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             if (updateUserDto.Name != null) user.Name = updateUserDto.Name;
             if (updateUserDto.Email != null && updateUserDto.Email != user.Email)
@@ -199,6 +225,11 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) return false;
 
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
             var result = await _userManager.DeleteAsync(user);
 
             return result.Succeeded;
@@ -210,6 +241,12 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
 
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
+            Console.WriteLine($"Locking user {id} with reason: {reason}");
             var blockDurations = new Dictionary<LockReason, int>
             {
                 { LockReason.None, 0 },
@@ -223,8 +260,8 @@ namespace Pet.Services
             user.LockoutEnabled = reason != LockReason.None;
 
             // Sử dụng giờ địa phương (+7) để tính LockoutEnd
-            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            /*var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);*/
             
             if (blockDurations.TryGetValue(reason, out int days))
             {
@@ -258,6 +295,11 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
 
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
             user.LockoutEnabled = false;
             user.LockoutEnd = null;
             user.LockReason = LockReason.None;
@@ -282,6 +324,11 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
+
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             var newPassword = GenerateRandomPassword();
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);

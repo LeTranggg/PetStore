@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Pet.Dtos.Role;
+using Pet.Dtos.Shipping;
+using Pet.Services;
 using Pet.Services.IServices;
 
 namespace Pet.Controllers
@@ -9,13 +9,13 @@ namespace Pet.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]
-    public class RoleController : ControllerBase
+    public class ShippingController : ControllerBase
     {
-        private readonly IRoleService _roleService;
+        private readonly IShippingService _shippingService;
 
-        public RoleController(IRoleService roleService)
+        public ShippingController(IShippingService shippingService)
         {
-            _roleService = roleService;
+            _shippingService = shippingService;
         }
 
         // Lấy userId từ token
@@ -27,23 +27,23 @@ namespace Pet.Controllers
             return userId;
         }
 
-        // GET: api/role
+        // GET: api/shipping
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoleDto>>> GetAllRoles()
+        public async Task<ActionResult<IEnumerable<ShippingDto>>> GetAllShippings()
         {
             var userId = GetUserId();
-            return Ok(await _roleService.GetAllRolesAsync(userId));
+            return Ok(await _shippingService.GetAllShippingsAsync(userId));
         }
 
-        // GET: api/role/1
+        // GET: api/shipping/1
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoleDto>> GetRole(int id)
+        public async Task<ActionResult<ShippingDto>> GetShipping(int id)
         {
             try
             {
                 var userId = GetUserId();
-                var role = await _roleService.GetRoleByIdAsync(userId, id);
-                return Ok(role);
+                var shipping = await _shippingService.GetShippingByIdAsync(userId, id);
+                return Ok(shipping);
             }
             catch (KeyNotFoundException ex)
             {
@@ -51,31 +51,31 @@ namespace Pet.Controllers
             }
         }
 
-        // POST: api/role
+        // POST: api/shipping
         [HttpPost]
-        public async Task<ActionResult<RoleDto>> CreateRole([FromBody] UpdateRoleDto createRoleDto)
+        public async Task<ActionResult<ShippingDto>> CreateShipping([FromBody] CreateShippingDto createShippingDto)
         {
             try
             {
                 var userId = GetUserId();
-                var role = await _roleService.CreateRoleAsync(userId, createRoleDto);
-                return CreatedAtAction(nameof(GetRole), new { id = role.Id }, role);
+                var shipping = await _shippingService.CreateShippingAsync(userId, createShippingDto);
+                return CreatedAtAction(nameof(GetShipping), new { id = shipping.Id }, shipping);
             }
-            catch (InvalidOperationException ex)
+            catch(InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
         }
 
-        // PUT: api/role/1
+        // PUT: api/shipping/1
         [HttpPut("{id}")]
-        public async Task<ActionResult<RoleDto>> UpdateRole(int id, [FromBody] UpdateRoleDto updateRoleDto)
+        public async Task<ActionResult<ShippingDto>> UpdateShipping(int id, [FromBody] UpdateShippingDto updateShippingDto)
         {
             try
             {
                 var userId = GetUserId();
-                var role = await _roleService.UpdateRoleAsync(userId, id, updateRoleDto);
-                return Ok(role);
+                var shipping = await _shippingService.UpdateShippingAsync(userId, id, updateShippingDto);
+                return Ok(shipping);
             }
             catch (KeyNotFoundException ex)
             {
@@ -87,15 +87,15 @@ namespace Pet.Controllers
             }
         }
 
-        // DELETE: api/role/1
+        // DELETE: api/shipping/1
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole(int id)
+        public async Task<IActionResult> DeleteShipping(int id)
         {
             try
             {
                 var userId = GetUserId();
-                var role = await _roleService.DeleteRoleAsync(userId, id);
-                if (!role) return NotFound($"Role with ID {id} not found.");
+                var shipping = await _shippingService.DeleteShippingAsync(userId, id);
+                if (!shipping) return NotFound($"Shipping with ID {id} not found.");
                 return NoContent();
             }
             catch (InvalidOperationException ex)

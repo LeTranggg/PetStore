@@ -160,6 +160,12 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
 
+            // Kiểm tra tình trạng khoá tài khoản
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
             // Tải thông tin Role
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
@@ -270,6 +276,12 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new KeyNotFoundException("User not found.");
 
+            // Kiểm tra tình trạng khoá tài khoản
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+
             var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
             if (!result.Succeeded) throw new InvalidOperationException("Old password is incorrect or new password is invalid.");
 
@@ -282,6 +294,12 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new KeyNotFoundException("User not found.");
+
+            // Kiểm tra tình trạng khoá tài khoản
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             if (updateProfileDto.Name != null) user.Name = updateProfileDto.Name;
             if (updateProfileDto.Email != null && updateProfileDto.Email != user.Email)
@@ -332,6 +350,12 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new KeyNotFoundException("User not found.");
+
+            // Kiểm tra tình trạng khoá tài khoản
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             user.LockoutEnabled = true;
             user.LockoutEnd = DateTimeOffset.UtcNow.AddDays(10);

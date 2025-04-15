@@ -20,17 +20,33 @@ namespace Pet.Services
             _mapper = mapper;
         }
 
-        // Xem danh sách categories 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+        // Kiểm tra trạng thái user
+        private async Task CheckUserAsync(int userId)
         {
-            var category = await _context.Categories.ToListAsync();
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found.");
 
-            return _mapper.Map<IEnumerable<CategoryDto>>(category);
+            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
+                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
+        }
+
+        // Xem danh sách categories 
+        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync(int userId)
+        {
+            await CheckUserAsync(userId);
+
+            var categories = await _context.Categories.ToListAsync();
+
+            return _mapper.Map<IEnumerable<CategoryDto>>(categories);
         }
 
         // Xem chi tiết category theo ID
-        public async Task<CategoryDto> GetCategoryByIdAsync(int id)
+        public async Task<CategoryDto> GetCategoryByIdAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var category = await _context.Categories.FindAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found.");
 
@@ -38,8 +54,10 @@ namespace Pet.Services
         }
 
         // Tạo category mới
-        public async Task<CategoryDto> CreateCategoryAsync(UpdateCategoryDto createCategoryDto)
+        public async Task<CategoryDto> CreateCategoryAsync(int userId, UpdateCategoryDto createCategoryDto)
         {
+            await CheckUserAsync(userId);
+
             if (await _context.Categories.AnyAsync(c => c.Name == createCategoryDto.Name))
                 throw new InvalidOperationException($"Category with name '{createCategoryDto.Name}' already exists.");
 
@@ -53,15 +71,17 @@ namespace Pet.Services
         }
 
         // Cập nhật category
-        public async Task<CategoryDto> UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto)
+        public async Task<CategoryDto> UpdateCategoryAsync(int userId, int id, UpdateCategoryDto updateCategoryDto)
         {
+            await CheckUserAsync(userId);
+
             var category = await _context.Categories.FindAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found.");
 
             if (await _context.Categories.AnyAsync(c => c.Name == updateCategoryDto.Name))
                 throw new InvalidOperationException($"Category with name '{updateCategoryDto.Name}' already exists.");
 
-            _mapper.Map(updateCategoryDto, category);
+            category.Name = updateCategoryDto.Name;
 
             _context.Categories.Update(category);
             await _context.SaveChangesAsync();
@@ -70,8 +90,10 @@ namespace Pet.Services
         }
 
         // Xoá category
-        public async Task<bool> DeleteCategoryAsync(int id)
+        public async Task<bool> DeleteCategoryAsync(int userId, int id)
         {
+            await CheckUserAsync(userId);
+
             var category = await _context.Categories.FindAsync(id);
             if (category == null) return false;
 
