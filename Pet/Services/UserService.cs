@@ -258,10 +258,6 @@ namespace Pet.Services
             };
             user.LockReason = reason;
             user.LockoutEnabled = reason != LockReason.None;
-
-            // Sử dụng giờ địa phương (+7) để tính LockoutEnd
-            /*var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);*/
             
             if (blockDurations.TryGetValue(reason, out int days))
             {
@@ -294,11 +290,6 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
-
-            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
-            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
-                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             user.LockoutEnabled = false;
             user.LockoutEnd = null;

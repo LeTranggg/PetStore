@@ -32,8 +32,7 @@ namespace Pet.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts()
         {
-            var userId = GetUserId();
-            return Ok(await _productService.GetAllProductsAsync(userId));
+            return Ok(await _productService.GetAllProductsAsync());
         }
 
         // GET: api/product/1
@@ -42,8 +41,7 @@ namespace Pet.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                var product = await _productService.GetProductByIdAsync(userId, id);
+                var product = await _productService.GetProductByIdAsync(id);
                 return Ok(product);
             }
             catch (KeyNotFoundException ex)
