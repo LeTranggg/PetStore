@@ -1,179 +1,242 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from "../../utils/Axios";
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import API from '../../utils/Axios';
+import ToastNotification from '../../misc/ToastNotification';
 
-function Update({ onUpdate }) {
+function Update() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { productId } = useParams();
+  const product = location.state?.product;
+
+  // State cho formData, categories, error và loading
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    supplier: ""
+    name: product?.name || '',
+    price: product?.price || '',
+    description: product?.description || '',
+    categoryId: '',
+    supplierId: '',
+    image: null,
   });
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true,
+  });
 
-  console.log('product ID:', productId);
 
+  // Fetch categories từ API khi component mount
   useEffect(() => {
-    if (!productId) {
-      setError("Product ID is not provided.");
-      return;
-    }
-
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(`/product/${productId}`);
-        const productData = response.data;
-
-        setFormData({
-          name: productData.name,
-          description: productData.description,
-          price: productData.price,
-          category: productData.category || "",
-          supplier: productData.supplier || ""
-        });
-      } catch (error) {
-        setError("Failed to fetch product.");
-      }
-    };
-
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("/category");
-        setCategories(response.data);
-      } catch (error) {
-        setError("Failed to fetch categories.");
+        const categoryResponse = await API.get('/category');
+        setCategories(categoryResponse.data);
+
+        // Gán categoryId dựa trên product.category
+        if (product?.category && categoryResponse.data.length > 0) {
+          const productCategory = categoryResponse.data.find(category => category.name === product.category);
+          if (productCategory) {
+            setFormData(prev => ({ ...prev, categoryId: productCategory.id }));
+          } else {
+            // Nếu không tìm thấy category, gán category đầu tiên trong danh sách
+            setFormData(prev => ({ ...prev, categoryId: categoryResponse.data[0].id }));
+          }
+        }
+      } catch (err) {
+        setError('Failed to load categories.');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get("/supplier");
-        setSuppliers(response.data);
-      } catch (error) {
-        setError("Failed to fetch suppliers.");
+        const supplierResponse = await API.get('/supplier');
+        setSuppliers(supplierResponse.data);
+
+        // Gán supplierId dựa trên product.supplier
+        if (product?.supplier && supplierResponse.data.length > 0) {
+          const productSuppiler = supplierResponse.data.find(supplier => supplier.name === product.supplier);
+          if (productSuppiler) {
+            setFormData(prev => ({ ...prev, supplierId: productSuppiler.id }));
+          } else {
+            // Nếu không tìm thấy supplier, gán supplier đầu tiên trong danh sách
+            setFormData(prev => ({ ...prev, supplierId: supplierResponse.data[0].id }));
+          }
+        }
+      } catch (err) {
+        setError('Failed to load suppliers.');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchProduct();
     fetchCategories();
     fetchSuppliers();
-  }, [productId]);
+  }, [product]); // Dependency là product để đảm bảo fetch categories và suppliers khi product thay đổi
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!product) return;
 
-    const updatedData = {
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      price: String(formData.price).trim(),
-      category: typeof formData.category === 'object' ? formData.category.name : formData.category,
-      supplier: typeof formData.supplier === 'object' ? formData.supplier.name : formData.supplier
-    };
-
-    if (!updatedData.name || !updatedData.price || (!updatedData.category && formData.category === "")|| (!updatedData.supplier && formData.supplier === "")) {
-      setError("All fields must be filled out.");
-      return;
-    }
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null && formData[key] !== undefined) {
+        data.append(key, formData[key]);
+      }
+    });
 
     try {
-      console.log("Updated Data Payload:", JSON.stringify(updatedData));
-      const response = await axios.put(`/product/${productId}`, updatedData);
-      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
-        setError(null);
-        if (onUpdate) {
-          onUpdate(updatedData);
-        }
-
-        navigate("/products", { state: { message: "Cập nhật product thành công!", type: 'success' }});
-      } else {
-        // Nếu mã trạng thái không phải 2xx, coi như thất bại
-        throw new Error("API failed but role might have been created.");
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        const errorMessage = typeof error.response.data === 'string'
-          ? error.response.data
-          : JSON.stringify(error.response.data);
-        setError(`Failed to update product: ${errorMessage}`);
-      } else {
-        navigate("/products", { state: { message: "Không thể cập nhật product! Vui lòng thử lại.", type: 'danger' }});
-      }
+      setLoadingUpdate(true);
+      const response = await API.put(`/product/${product.id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      navigate("/admin/products", {
+        state: { toast: { message: 'Product updated successfully!', type: 'success' } }
+      });
+    } catch (err) {
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to update product.',
+        type: 'error',
+        autoHide: false,
+      });
+      console.error('Error updating product:', err.message || err);
+    } finally {
+      setLoadingUpdate(false);
     }
-
   };
+
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
+  };
+
+  if (!product) {
+    return (
+      <div>
+        No product selected for update. <button onClick={() => navigate(-1)}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h2>Update product</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Description:</label>
-          <input
-            type="text"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Price:</label>
-          <input
-            type="text"
-            name="price"
-            value={formData.price}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Category:</label>
-          <select name="category" value={formData.category.name} onChange={handleInputChange}>
-            <option value="">Select Category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Supplier:</label>
-          <select name="supplier" value={formData.supplier.name} onChange={handleInputChange}>
-            <option value="">Select Supplier</option>
-            {suppliers.map((supplier) => (
-              <option key={supplier.id} value={supplier.name}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit">Update</button>
-      </form>
+      <div className="function">
+        <h3>Update Product (ID: {product.id})</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="function-container">
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="price">Price</label>
+                <input
+                  type="number"
+                  step="1000"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="categoryId">Category</label>
+                <select
+                  className="form-select"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleChange}
+                >
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="supplierId">Supplier</label>
+                <select
+                  className="form-select"
+                  name="supplierId"
+                  value={formData.supplierId}
+                  onChange={handleChange}
+                >
+                  {suppliers.map(supplier => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="description">Description</label>
+              <textarea className="form-group"
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="image">Image</label>
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div className="function-button">
+              <button type="submit" className="button-save" disabled={loadingUpdate}>
+                {loadingUpdate ? 'Updating...' : 'Update'}
+              </button>
+              <button onClick={() => navigate("/admin/products")} className="button-cancel" disabled={loadingUpdate}>Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

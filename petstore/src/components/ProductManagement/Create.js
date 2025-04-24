@@ -1,36 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "../../utils/Axios";
+import React, { useState, useEffect } from 'react';
+import API from '../../utils/Axios';
+import { useNavigate } from 'react-router-dom';
+import ToastNotification from '../../misc/ToastNotification';
 
-function Create({ onCreate }) {
-  const navigate = useNavigate();
+function Create({ onProductCreated }) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    supplier: ""
+    name: '',
+    price: '',
+    categoryId: '',
+    supplierId: '',
+    description: '',
+    image: null,
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadingCreate, setLoadingCreate] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true,
+  });
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`/category`);
-        setCategories(response.data);
-      } catch (error) {
-        setError("Failed to fetch categories.");
+        const categoryResponse = await API.get('/category');
+        setCategories(categoryResponse.data);
+
+        if (categoryResponse.data.length > 0) {
+          setFormData(prev => ({ ...prev, categoryId: categoryResponse.data[0].id }));
+        }
+      } catch (err) {
+        setError('Failed to load categories.');
+        console.error('Error fetching categories:', err.message || err);
+      } finally {
+        setLoading(false);
       }
     };
 
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get(`/supplier`);
-        setSuppliers(response.data);
-      } catch (error) {
-        setError("Failed to fetch suppliers.");
+        const supplierResponse = await API.get('/supplier');
+        setSuppliers(supplierResponse.data);
+
+        if (supplierResponse.data.length > 0) {
+          setFormData(prev => ({ ...prev, supplierId: supplierResponse.data[0].id }));
+        }
+      } catch (err) {
+        setError('Failed to load suppliers.');
+        console.error('Error fetching categories:', err.message || err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -38,88 +62,166 @@ function Create({ onCreate }) {
     fetchSuppliers();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post("/product", formData, {
-        headers: {
-          'Content-Type': 'application/json' // Ensure the headers are set for JSON data
-        }
-      });
-      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
-        setError(null);
-        if (onCreate) {
-          onCreate(response.data);
-        }
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key]);
+    });
 
-        navigate("/products", { state: { message: "Tạo product thành công!", type: 'success'}});
-      } else {
-        // Nếu mã trạng thái không phải 2xx, coi như thất bại
-        throw new Error("API failed but role might have been created.");
+    try {
+      setLoadingCreate(true);
+      const response = await API.post('/product', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      // Chỉ gọi onProductCreated nếu nó là một hàm
+      if (typeof onProductCreated === 'function') {
+        onProductCreated(response.data);
       }
-    } catch (error) {
-      // Hiển thị chi tiết lỗi trả về từ backend
-      if (error.response && error.response.data) {
-        const errorMessage = typeof error.response.data === 'string'
-          ? error.response.data
-          : JSON.stringify(error.response.data);
-        setError(`Failed to create product: ${errorMessage}`);
-      } else {
-        navigate("/products", { state: { message: "Không thể tạo product! Vui lòng thử lại.", type: 'danger' }});
-      }
+      setFormData({
+        name: '',
+        price: '',
+        description: '',
+        categoryId: Array.isArray(categories) && categories.length > 0
+        ? (categories[0]?.id || '')
+          : '',
+        supplierId: Array.isArray(suppliers) && suppliers.length > 0
+        ? (suppliers[0]?.id || '')
+        : '',
+        image: null
+      });
+      navigate("/admin/products", {
+        state: { toast: { message: 'Product created successfully!', type: 'success' } }
+      });
+    } catch (err) {
+      console.error('Error creating product:', err.message || err);
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to create product.',
+        type: 'error',
+        autoHide: false,
+      });
+    } finally {
+      setLoadingCreate(false);
     }
+  };
+
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
   };
 
   return (
     <div>
-      <h2>Create product</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Description:</label>
-          <input type="text" name="description" value={formData.description} onChange={handleInputChange} />
-        </div>
-        <div>
-          <label>Price:</label>
-          <input type="text" name="price" value={formData.price} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Category:</label>
-          <select name="category" value={formData.category} onChange={handleInputChange}>
-            <option value="">Select Category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Supplier:</label>
-          <select name="supplier" value={formData.supplier} onChange={handleInputChange}>
-            <option value="">Select Supplier</option>
-            {suppliers.map((supplier) => (
-              <option key={supplier.id} value={supplier.name}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit">Create product</button>
-      </form>
+      <div className="function">
+        <h3>Create New Product</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="function-container">
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="price">Price</label>
+                <input
+                  type="number"
+                  step="1000"
+                  name="price"
+                  value={formData.additionalFee}
+                  onChange={handleChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="category">Category</label>
+                <select
+                  className="form-select"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleChange}
+                >
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="supplier">Supplier</label>
+                <select
+                  className="form-select"
+                  name="supplierId"
+                  value={formData.supplierId}
+                  onChange={handleChange}
+                >
+                  {suppliers.map(supplier => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="description">Description</label>
+              <textarea className="form-group"
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="image" >Image</label>
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div className="function-button">
+              <button type="submit" className="button-save" disabled={loadingCreate}>
+                {loadingCreate ? 'Creating...' : 'Create'}
+              </button>
+              <button onClick={() => navigate("/admin/products")} className="button-cancel" disabled={loadingCreate}>Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

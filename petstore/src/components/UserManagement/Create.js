@@ -1,126 +1,257 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "../../utils/Axios";
+import React, { useState, useEffect } from 'react';
+import API from '../../utils/Axios';
+import { useNavigate } from 'react-router-dom';
+import ToastNotification from '../../misc/ToastNotification';
 
-function Create({ onCreate }) {
-  const navigate = useNavigate();
+function Create({ onUserCreated }) {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    passwordConfirmed: "",
-    firstName: "",
-    lastName: "",
-    phoneNumber: "",
-    address: "",
-    dateOfBirth: "",
-    role: ""
+    name: '',
+    email: '',
+    dateOfBirth: '',
+    gender: 'Male',
+    phoneNumber: '',
+    address: '',
+    roleId: '',
+    image: null,
   });
-  const [roles, setRoles] = useState([]); // Lưu danh sách role từ backend
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadingCreate, setLoadingCreate] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true,
+  });
+  const navigate = useNavigate();
+  const [roles, setRoles] = useState([]);
+
+  const validateDateOfBirth = (dob) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    // Điều chỉnh tuổi nếu sinh nhật chưa đến trong năm nay
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) ? age - 1 : age;
+
+    if (adjustedAge < 15) {
+      return 'User must be at least 15 years old.';
+    }
+    if (adjustedAge > 90) {
+      return 'Age cannot exceed 90 years.';
+    }
+    return '';
+  };
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await axios.get(`/role`);
-        setRoles(response.data);
-      } catch (error) {
-        setError("Failed to fetch roles.");
+        const roleResponse = await API.get('/role');
+        setRoles(roleResponse.data);
+
+        if (roleResponse.data.length > 0) {
+          const customerRole = roleResponse.data.find(role => role.name === 'Customer');
+          setFormData(prev => ({ ...prev, roleId: customerRole ? customerRole.id : roleResponse.data[0].id }));
+        }
+      } catch (err) {
+        setError('Failed to load roles.');
+        console.error('Error fetching roles:', err.message || err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchRoles();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post("/user", formData, {
-        headers: {
-          'Content-Type': 'application/json' // Ensure the headers are set for JSON data
-        }
-      });
-      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
-        setError(null);
-        if (onCreate) {
-          onCreate(response.data);
-        }
 
-        navigate("/users", { state: { message: "Tạo tài khoản thành công! Vui lòng kiểm tra email.", type: 'success'}});
-      } else {
-        // Nếu mã trạng thái không phải 2xx, coi như thất bại
-        throw new Error("API failed but role might have been created.");
-      }
-    } catch (error) {
-      // Hiển thị chi tiết lỗi trả về từ backend
-      if (error.response && error.response.data) {
-        const errorMessage = typeof error.response.data === 'string'
-          ? error.response.data
-          : JSON.stringify(error.response.data);
-        setError(`Failed to create user: ${errorMessage}`);
-      } else {
-        navigate("/users", { state: { message: "Không thể tạo tài khoản! Vui lòng thử lại.", type: 'danger' }});
-      }
+    const dobError = validateDateOfBirth(formData.dateOfBirth);
+    if (dobError) {
+      setToast({
+        show: true,
+        message: dobError,
+        type: 'error',
+        autoHide: false,
+      });
+      return;
     }
+
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key]);
+    });
+
+    try {
+      setLoadingCreate(true);
+      const response = await API.post('/user', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      // Chỉ gọi onUserCreated nếu nó là một hàm
+      if (typeof onUserCreated === 'function') {
+        onUserCreated(response.data);
+      }
+      setFormData({
+        name: '',
+        email: '',
+        dateOfBirth: '',
+        gender: 'Male',
+        phoneNumber: '',
+        address: '',
+        roleId: Array.isArray(roles) && roles.length > 0
+          ? (roles.find(role => role.name === 'Customer')?.id || roles[0]?.id || '')
+          : '',
+        image: null
+      });
+      navigate("/admin/users", {
+        state: { toast: { message: 'User created successfully!', type: 'success' } }
+      });
+    } catch (err) {
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to create user.',
+        type: 'error',
+        autoHide: false,
+      });
+      console.error('Error creating user:', err.message || err);
+    } finally {
+      setLoadingCreate(false);
+    }
+  };
+
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
   };
 
   return (
     <div>
-      <h2>Create User</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input type="password" name="passwordConfirmed" value={formData.passwordConfirmed} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>First Name:</label>
-          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Phone Number:</label>
-          <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Address:</label>
-          <input type="text" name="address" value={formData.address} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Date of Birth:</label>
-          <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Role:</label>
-          <select name="role" value={formData.role} onChange={handleInputChange}>
-            <option value="">Select Role</option>
-            {roles.map((role) => (
-              <option key={role.id} value={role.name}>
-                {role.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit">Create User</button>
-      </form>
+      <div className="function">
+        <h3>Create New User</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="function-container">
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="dateOfBirth">Date Of Birth</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="phoneNumber">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="gender">Gender</label>
+                <select
+                  className="form-select"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="role">Role</label>
+                <select
+                  className="form-select"
+                  name="roleId"
+                  value={formData.roleId}
+                  onChange={handleChange}
+                >
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="address">Address</label>
+                <textarea className="form-group"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="image">Image</label>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div className="function-button">
+              <button type="submit" className="button-save" disabled={loadingCreate}>
+                {loadingCreate ? 'Creating...' : 'Create'}
+              </button>
+              <button onClick={() => navigate("/admin/users")} className="button-cancel" disabled={loadingCreate}>Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

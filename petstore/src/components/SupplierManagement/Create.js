@@ -1,81 +1,154 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "../../utils/Axios";
+import React, { useState } from 'react';
+import API from '../../utils/Axios';
+import { useNavigate } from 'react-router-dom';
+import ToastNotification from '../../misc/ToastNotification';
 
-function Create({ onCreate }) {
-  const navigate = useNavigate();
+function Create({ onSupplierCreated }) {
   const [formData, setFormData] = useState({
-    email: "",
-    name: "",
-    phoneNumber: "",
-    address: "",
+    name: '',
+    email: '',
+    phoneNumber: '',
+    address: '',
+    image: null,
   });
-  const [error, setError] = useState(null);
+  const [loadingCreate, setLoadingCreate] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true,
+  });
+  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post("/supplier", formData, {
-        headers: {
-          'Content-Type': 'application/json' // Ensure the headers are set for JSON data
-        }
-      });
-      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
-        setError(null);
-        if (onCreate) {
-          onCreate(response.data);
-        }
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key]);
+    });
 
-        navigate("/suppliers", { state: { message: "Tạo supplier thành công!", type: 'success'}});
-      } else {
-        // Nếu mã trạng thái không phải 2xx, coi như thất bại
-        throw new Error("API failed but role might have been created.");
+    try {
+      setLoadingCreate(true);
+      const response = await API.post('/supplier', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      // Chỉ gọi onSupplierCreated nếu nó là một hàm
+      if (typeof onSupplierCreated === 'function') {
+        onSupplierCreated(response.data);
       }
-    } catch (error) {
-      // Hiển thị chi tiết lỗi trả về từ backend
-      if (error.response && error.response.data) {
-        const errorMessage = typeof error.response.data === 'string'
-          ? error.response.data
-          : JSON.stringify(error.response.data);
-        setError(`Failed to create supplier: ${errorMessage}`);
-      } else {
-        navigate("/suppliers", { state: { message: "Không thể tạo supplier! Vui lòng thử lại.", type: 'danger' }});
-      }
+      setFormData({
+        name: '',
+        email: '',
+        phoneNumber: '',
+        address: '',
+        image: null
+      });
+      navigate("/admin/suppliers", {
+        state: { toast: { message: 'Supplier created successfully!', type: 'success' } }
+      });
+    } catch (err) {
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to create supplier.',
+        type: 'error',
+        autoHide: false,
+      });
+      console.error('Error creating supplier:', err.message || err);
+    } finally {
+      setLoadingCreate(false);
     }
+  };
+
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
   };
 
   return (
     <div>
-      <h2>Create supplier</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Name:</label>
-          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Phone Number:</label>
-          <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required />
-        </div>
-        <div>
-          <label>Address:</label>
-          <input type="text" name="address" value={formData.address} onChange={handleInputChange} required />
-        </div>
-        <button type="submit">Create supplier</button>
-      </form>
+      <div className="function">
+        <h3>Create New Supplier</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="function-container">
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="phoneNumber">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="address">Address</label>
+                <textarea className="form-group"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="image">Image</label>
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div className="function-button">
+              <button type="submit" className="button-save" disabled={loadingCreate}>
+                {loadingCreate ? 'Creating...' : 'Create'}
+              </button>
+              <button onClick={() => navigate("/admin/suppliers")} className="button-cancel" disabled={loadingCreate}>Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

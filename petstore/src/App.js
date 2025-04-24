@@ -1,296 +1,234 @@
-import React, { useEffect, useState } from "react";
-import { Link, Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import CategoryIndex from "./components/CategoryManagement/Index";
-import CreateClassification from "./components/ClassificationManagement/Create";
-import ClassificationIndex from "./components/ClassificationManagement/Index";
-import UpdateClassification from "./components/ClassificationManagement/Update";
-import Login from "./components/Login";
-import Logout from "./components/Logout";
-import Register from "./components/Register";
-import Profile from "./components/Profile";
-import ChangePass from "./components/ChangePass";
-import ForgotPass from "./components/ForgotPass";
-import ResetPass from "./components/ResetPass";
-import CreateProduct from "./components/ProductManagement/Create";
-import ProductIndex from "./components/ProductManagement/Index";
-import UpdateProduct from "./components/ProductManagement/Update";
-import ProductDetail from "./components/ProductDetail";
-import RoleIndex from "./components/RoleManagement/Index";
-import ShippingIndex from "./components/ShippingManagement/Index";
-import CreateSuppiler from "./components/SupplierManagement/Create";
-import SupplierIndex from "./components/SupplierManagement/Index";
-import UpdateSupplier from "./components/SupplierManagement/Update";
-import CreateUser from "./components/UserManagement/Create";
-import UserIndex from "./components/UserManagement/Index";
-import UpdateUser from "./components/UserManagement/Update";
-import CartItem from "./components/CartManagement/CartItem";
-import CartIndex from "./components/CartManagement/Index";
-import UpdateCart from "./components/CartManagement/Update";
-import OrderHistory from "./components/OrderManagement/OrderHistory";
-import OrderCreate from "./components/OrderManagement/Create";
-import OrderIndex from "./components/OrderManagement/Index";
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import React, { useEffect, useState } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import './App.css';
+import useAutoLogout from './misc/useAutoLogout';
+
+// Account Management
+import ChangePassword from './components/AccountManagement/ChangePassword';
+import Delete from './components/AccountManagement/Delete';
+import ForgotPassword from './components/AccountManagement/ForgotPassword';
+import Login from './components/AccountManagement/Login';
+import Logout from './components/AccountManagement/Logout';
+import Register from './components/AccountManagement/Register';
+import ResetPassword from './components/AccountManagement/ResetPassword';
+import UpdateProfile from './components/AccountManagement/UpdateProfile';
+import ViewProfile from './components/AccountManagement/ViewProfile';
+import ConfirmEmail from './components/AccountManagement/ConfirmEmail';
+
+// Role Management
+import ViewRoles from './components/RoleManagement/View';
+
+// User Management
+import CreateUser from './components/UserManagement/Create';
+import UpdateUser from './components/UserManagement/Update';
+import ViewUsers from './components/UserManagement/View';
+
+// Category Management
+import ViewCategories from './components/CategoryManagement/View';
+
+// Supplier Management
+import ViewSuppliers from './components/SupplierManagement/View';
+import CreateSupplier from './components/SupplierManagement/Create';
+import UpdateSupplier from './components/SupplierManagement/Update';
+
+// Product Management
+import ViewProducts from './components/ProductManagement/View';
+import CreateProduct from './components/ProductManagement/Create';
+import UpdateProduct from './components/ProductManagement/Update';
+import GuestProducts from './components/ProductManagement/GuestProducts';
+import CustomerProducts from './components/ProductManagement/CustomerProducts';
+import ProductDetail from './components/ProductManagement/ProductDetail';
+
+// Feature Management
+import ViewFeatures from './components/FeatureManagement/View';
+
+// Value Management
+import ViewValues from './components/ValueManagement/View';
+
+// Variant Management
+import ViewVariants from './components/VariantManagement/View';
+import CreateVariant from './components/VariantManagement/Create';
+import UpdateVariant from './components/VariantManagement/Update';
+
+// Cart Management
+import ViewCart from './components/CartManagement/View';
+
+// Shipping Management
+import ViewShipping from './components/ShippingManagement/View';
+
+// Order Management
+import Checkout from './components/OrderManagement/Checkout';
+import ViewOrders from './components/OrderManagement/View';
+import CustomerOrders from './components/OrderManagement/Orders';
+
+// Payment Management
+import ViewPayments from './components/PaymentManagement/View';
+
+// Screen Components
 import Admin from './screens/Admin';
+import Dashboard from './screens/Dashboard';
 import Customer from './screens/Customer';
+import Home from './screens/Home';
 import Guest from './screens/Guest';
-import "./App.css";
+import Welcome from './screens/Welcome';
+import Contact from './screens/Contact';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // Ban đầu chưa authenticated
-  const [role, setRole] = useState(null); // Ban đầu chưa có role
-  const [user, setUser] = useState(null); // Ban đầu chưa có user
+  const [authenticated, setAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
-  // Khi ứng dụng khởi chạy, lấy thông tin từ localStorage
+  // Google OAuth client ID
+  const clientId = '561388206826-upvque1t8hdmg1450kt5k0l10a1bbieu.apps.googleusercontent.com';
+
   useEffect(() => {
-    try {
-      // Lấy và kiểm tra token
-      const token = localStorage.getItem("token");
-      //console.log('Stored token:', token);
-
-      // Lấy thông tin user
-      const userDataString = localStorage.getItem("user");
-      //console.log('Stored user string:', userDataString);
-
-      if (token) {
-        setIsAuthenticated(true);
-
-        if (userDataString) {
-          const userData = JSON.parse(userDataString);
-          //console.log('Parsed user:', userData);
-
-          if (userData && Object.keys(userData).length > 0) {
-            // Set user data
-            setUser(userData);
-
-            // Set role từ user data
-            if (userData.role) {
-              setRole(userData.role);
-              //console.log('Set role to:', userData.role);
-            }
-          }
-        }
-      } else {
-        setIsAuthenticated(false);
-        setRole(null);
-        setUser(null);
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decode JWT token to get user role
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+        setUserRole(role);
+        setAuthenticated(true);
+      } catch (error) {
+        console.error('Invalid token', error);
+        localStorage.removeItem('token');
+        setAuthenticated(false);
+        setUserRole(null);
       }
-    } catch (error) {
-      console.error('Error processing stored data:', error);
-      setIsAuthenticated(false);
-      setRole(null);
-      setUser(null);
-
-      // Clear localStorage in case of corruption
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
     }
-
-    // Check for token expiration
-    const interval = setInterval(() => {
-      const currentToken = localStorage.getItem("token");
-      if (!currentToken) {
-        setIsAuthenticated(false);
-        setRole(null);
-        setUser(null);
-      }
-    }, 10000); // check every 10 seconds
-
-    return () => clearInterval(interval);
-
   }, []);
 
-  const Home = () => {
-    if (!isAuthenticated) {
-      return <Navigate to="/guest" replace/>;
+  // Protected route component
+  const ProtectedRoute = ({ element, requiredRole }) => {
+    useAutoLogout();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return <Navigate to="/login" />;
     }
 
-    // Nếu đã đăng nhập, điều hướng theo role
-    switch (user?.role) {
-      case "Admin":
-        return <Navigate to="/admin" replace/>;
-      case "Customer":
-        return <Navigate to="/customer" replace/>;
-      default:
-        return <Navigate to="/guest" replace/>;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+      if (requiredRole && role !== requiredRole) {
+        switch (role) {
+          case 'Admin':
+            return <Navigate to="/admin" />;
+          case 'Customer':
+            return <Navigate to="/customer" />;
+          default:
+            return <Navigate to="/login" />;
+        }
+      }
+      return element;
+    } catch (error) {
+      localStorage.removeItem('token');
+      return <Navigate to="/login" />;
     }
   };
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Trang chủ */}
-          <Route path="/" element={<Home />} />
-          <Route path="/guest" element={!isAuthenticated ? <Guest /> : <Navigate to="/" replace />} />
+    <GoogleOAuthProvider clientId={clientId}>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* -----Account Management----- */}
+            {/* Public Routes */}
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
+            <Route path="/logout" element={<Logout />} />
 
-          {/* Trang dành cho user đã đăng nhập */}
-          <Route path="/admin" element={
-            isAuthenticated && role === "Admin" ?
-            <div>
-              <Admin user={user} />
-              <div>
-                <Link to={`/profile/${user?.id}`}>Profile</Link>
-                <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
-              </div>
-            </div> :
-            <Navigate to="/" replace/>
-          } />
-          <Route path="/customer" element={
-            isAuthenticated && role === "Customer" ?
-            <div>
-              <Customer user={user} />
-              <div>
-                <Link to={`/profile/${user?.id}`}>Profile</Link>
-                <Logout setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} />
-              </div>
-            </div> :
-            <Navigate to="/" replace/>
-          } />
+            {/* Protected routes */}
+            <Route path="/profile" element={<ProtectedRoute element={<ViewProfile />} />} />
+            <Route path="/update-profile" element={<ProtectedRoute element={<UpdateProfile />} />} />
+            <Route path="/change-password" element={<ProtectedRoute element={<ChangePassword />} />} />
+            <Route path="/delete-account" element={<ProtectedRoute element={<Delete />} />} />
 
-          {/* Trang quản lý roles */}
-          <Route
-            path="/roles"
-            element={isAuthenticated && role === "Admin" ? <RoleIndex /> : <Navigate to="/" replace/>}
-          />
+            {/* -----Guest Routes----- */}
+            <Route path="/" element={<Guest />} >
+              <Route index element={<Navigate to="/welcome" replace />} />
+              <Route path="welcome" element={<Welcome />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="products" element={<GuestProducts />} />
+            </Route>
 
-          {/* Trang quản lý users */}
-          <Route
-            path="/users"
-            element={isAuthenticated && role === "Admin" ? <UserIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/users/create"
-            element={isAuthenticated && role === "Admin" ? <CreateUser /> : <Navigate to="/users" replace/>}
-          />
-          <Route
-            path="/users/update/:userId"
-            element={isAuthenticated && role === "Admin" ? <UpdateUser /> : <Navigate to="/users" replace/>}
-          />
+            {/* -----Customer Routes----- */}
+            <Route path="/customer" element={<ProtectedRoute element={<Customer />} requiredRole="Customer" />}>
+              <Route index element={<Navigate to="/customer/home" replace />} />
+              <Route path="home" element={<ProtectedRoute element={<Home />} />} />
+              <Route path="contact" element={<ProtectedRoute element={<Contact />} requiredRole="Customer" />} />
 
-          {/* Trang quản lý categories */}
-          <Route
-            path="/categories"
-            element={isAuthenticated && role === "Admin" ? <CategoryIndex /> : <Navigate to="/" replace/>}
-          />
+              {/* Product Management */}
+              <Route path="customer-products" element={<ProtectedRoute element={<CustomerProducts />} />} />
+              <Route path="product/:id" element={<ProductDetail />} />
 
-          {/* Trang quản lý suppliers */}
-          <Route
-            path="/suppliers"
-            element={isAuthenticated && role === "Admin" ? <SupplierIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/suppliers/create"
-            element={isAuthenticated && role === "Admin" ? <CreateSuppiler /> : <Navigate to="/suppliers" replace/>}
-          />
-          <Route
-            path="/suppliers/update/:supplierId"
-            element={isAuthenticated && role === "Admin" ? <UpdateSupplier /> : <Navigate to="/suppliers" replace/>}
-          />
+              {/* Cart Management */}
+              <Route path="cart" element={<ProtectedRoute element={<ViewCart />} />} />
 
-          {/* Trang quản lý products */}
-          <Route
-            path="/products"
-            element={isAuthenticated && role === "Admin" ? <ProductIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/products/create"
-            element={isAuthenticated && role === "Admin" ? <CreateProduct /> : <Navigate to="/products" replace/>}
-          />
-          <Route
-            path="/products/update/:productId"
-            element={isAuthenticated && role === "Admin" ? <UpdateProduct /> : <Navigate to="/products" replace/>}
-          />
+              {/* Order Management */}
+              <Route path="customer-orders" element={<ProtectedRoute element={<CustomerOrders />} />} />
+              <Route path="checkout" element={<ProtectedRoute element={<Checkout />}  />} />
+            </Route>
 
-          {/* Trang products chi tiết*/}
-          <Route
-            path="/products/product-detail/:productId"
-            element={!isAuthenticated || role === "Customer" ? <ProductDetail /> : <Navigate to="/" replace/>}
-          />
+            {/* -----Admin Routes----- */}
+            <Route path="/admin" element={<ProtectedRoute element={<Admin />} requiredRole="Admin"
+            />}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
 
-          {/* Trang quản lý classifications */}
-          <Route
-            path="/classifications"
-            element={isAuthenticated && role === "Admin" ? <ClassificationIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/classifications/create"
-            element={isAuthenticated && role === "Admin" ? <CreateClassification /> : <Navigate to="/classifications" replace/>}
-          />
-          <Route
-            path="/classifications/update/:classificationId"
-            element={isAuthenticated && role === "Admin" ? <UpdateClassification /> : <Navigate to="/classifications" replace/>}
-          />
+              {/* Role Management */}
+              <Route path="roles" element={<ProtectedRoute element={<ViewRoles />} />} />
 
-          {/* Trang quản lý shippings */}
-          <Route
-            path="/shippings"
-            element={isAuthenticated && role === "Admin" && "Customer" ? <ShippingIndex /> : <Navigate to="/" replace/>}
-          />
+              {/* User Management */}
+              <Route path="users" element={<ProtectedRoute element={<ViewUsers />} />} />
+              <Route path="create-user" element={<ProtectedRoute element={<CreateUser />} />} />
+              <Route path="update-user" element={<ProtectedRoute element={<UpdateUser />} />} />
 
-          {/* Trang quản lý cart */}
-          <Route
-            path="/cart"
-            element={isAuthenticated && role === "Customer" ? <CartIndex /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/cart/cart-item"
-            element={isAuthenticated && role === "Customer" ? <CartItem /> : <Navigate to="/cart" replace/>}
-          />
-          <Route
-            path="/cart/update/:cartItemId"
-            element={isAuthenticated && role === "Customer" ? <UpdateCart /> : <Navigate to="/cart" replace/>}
-          />
+              {/* Category Management */}
+              <Route path="categories" element={<ProtectedRoute element={<ViewCategories />} />} />
 
-          <Route
-            path="/orders"
-            element={isAuthenticated && role === "Admin" ? <OrderIndex /> : <Navigate to="/" replace />}
-          />
-          <Route
-            path="/orders/create"
-            element={isAuthenticated && role === "Customer" ? <OrderCreate /> : <Navigate to="/" replace />}
-          />
-          <Route
-            path="/orders/history"
-            element={isAuthenticated && role === "Customer" ? <OrderHistory /> : <Navigate to="/" replace />}
-          />
+              {/* Supplier Management */}
+              <Route path="suppliers" element={<ProtectedRoute element={<ViewSuppliers />} />} />
+              <Route path="create-supplier" element={<ProtectedRoute element={<CreateSupplier />} />} />
+              <Route path="update-supplier" element={<ProtectedRoute element={<UpdateSupplier />} />} />
 
-          {/* Trang profile */}
-          <Route
-            path="/profile/:userId"
-            element={isAuthenticated ? <Profile user={user} /> : <Navigate to="/profile" replace/>}
-          />
-          <Route
-            path="/profile/change-pass/:userId"
-            element={isAuthenticated ? <ChangePass user={user} /> : <Navigate to="/profile" replace/>}
-          />
+              {/* Product Management */}
+              <Route path="products" element={<ProtectedRoute element={<ViewProducts />} />} />
+              <Route path="create-product" element={<ProtectedRoute element={<CreateProduct />} />} />
+              <Route path="update-product" element={<ProtectedRoute element={<UpdateProduct />} />} />
 
-          {/* Trang đăng nhập */}
-          <Route
-            path="/login"
-            element={!isAuthenticated ? <Login setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
-          />
+              {/* Feature Management */}
+              <Route path="features" element={<ProtectedRoute element={<ViewFeatures />} />} />
 
-          {/* Trang đăng ký */}
-          <Route
-            path="/register"
-            element={!isAuthenticated ? <Register setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
-          />
+              {/* Value Management */}
+              <Route path="values" element={<ProtectedRoute element={<ViewValues />} />} />
 
-          {/* Trang quên mật khẩu */}
-          <Route
-            path="/forgot-pass"
-            element={!isAuthenticated ? <ForgotPass setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
-          />
-          <Route
-            path="/reset-pass"
-            element={!isAuthenticated ? <ResetPass setAuth={setIsAuthenticated} setRole={setRole} setUser={setUser} /> : <Navigate to="/" replace/>}
-          />
+              {/* Variant Management */}
+              <Route path="variants" element={<ProtectedRoute element={<ViewVariants />} />} />
+              <Route path="create-variant" element={<ProtectedRoute element={<CreateVariant />} />} />
+              <Route path="update-variant" element={<ProtectedRoute element={<UpdateVariant />} />} />
 
-          {/* Redirect tất cả các route khác về trang chủ */}
-          <Route path="*" element={<Navigate to="/" replace/>} />
-        </Routes>
-      </div>
-    </Router>
+              {/* Shipping Management */}
+              <Route path="shipping" element={<ProtectedRoute element={<ViewShipping />} />} />
+
+              {/* Order Management */}
+              <Route path="orders" element={<ProtectedRoute element={<ViewOrders />} />} />
+
+              {/* Payment Management */}
+              <Route path="payments" element={<ProtectedRoute element={<ViewPayments />} />} />
+            </Route>
+
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 

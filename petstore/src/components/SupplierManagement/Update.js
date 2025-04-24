@@ -1,143 +1,160 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from "../../utils/Axios";
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import API from '../../utils/Axios';
+import ToastNotification from '../../misc/ToastNotification';
 
-function Update({ onUpdate }) {
+function Update() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { supplierId } = useParams();
+  const supplier = location.state?.supplier;
+
+  // State cho formData, roles, error và loading
   const [formData, setFormData] = useState({
-    email: "",
-    name: "",
-    phoneNumber: "",
-    address: "",
+    name: supplier?.name || '',
+    email: supplier?.email || '',
+    phoneNumber: supplier?.phoneNumber || '',
+    address: supplier?.address || '',
+    image: null,
   });
-  const [error, setError] = useState(null);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true,
+  });
 
-  console.log('supplier ID:', supplierId);
-
-  useEffect(() => {
-    if (!supplierId) {
-      setError("Supplier ID is not provided.");
-      return;
-    }
-
-    const fetchSupplier = async () => {
-      try {
-        const response = await axios.get(`/supplier/${supplierId}`);
-        const supplierData = response.data;
-
-        setFormData({
-          email: supplierData.email,
-          name: supplierData.name,
-          phoneNumber: supplierData.phoneNumber,
-          address: supplierData.address
-        });
-      } catch (error) {
-        setError("Failed to fetch supplier.");
-      }
-    };
-
-    fetchSupplier();
-  }, [supplierId]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!supplier) return;
 
-    const updatedData = {
-      email: formData.email.trim(),
-      name: formData.name.trim(),
-      phoneNumber: formData.phoneNumber.trim(),
-      address: formData.address.trim(),
-    };
-
-    if (!updatedData.email || !updatedData.name || !updatedData.phoneNumber || !updatedData.address) {
-      setError("All fields must be filled out.");
-      return;
-    }
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null && formData[key] !== undefined) {
+        data.append(key, formData[key]);
+      }
+    });
 
     try {
-      console.log("Updated Data Payload:", JSON.stringify(updatedData));
-      const response = await axios.put(`/supplier/${supplierId}`, updatedData);
-      if (response.status === 201 || response.status === 200) { // Kiểm tra mã trạng thái trả về
-        setError(null);
-        if (onUpdate) {
-          onUpdate(updatedData);
-        }
-
-        navigate("/suppliers", { state: { message: "Cập nhật supplier thành công!", type: 'success' }});
-      } else {
-        // Nếu mã trạng thái không phải 2xx, coi như thất bại
-        throw new Error("API failed but role might have been created.");
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        const errorMessage = typeof error.response.data === 'string'
-          ? error.response.data
-          : JSON.stringify(error.response.data);
-        setError(`Failed to update supplier: ${errorMessage}`);
-      } else {
-        navigate("/suppliers", { state: { message: "Không thể cập nhật supplier! Vui lòng thử lại.", type: 'danger' }});
-      }
+      setLoadingUpdate(true);
+      const response = await API.put(`/supplier/${supplier.id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      navigate("/admin/suppliers", {
+        state: { toast: { message: 'Supplier updated successfully!', type: 'success' } }
+      });
+    } catch (err) {
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to update supplier.',
+        type: 'error',
+        autoHide: false,
+      });
+      console.error('Error updating supplier:', err.message || err);
+    } finally {
+      setLoadingUpdate(false);
     }
-
   };
+
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
+  };
+
+  if (!supplier) {
+    return (
+      <div>
+        No supplier selected for update. <button onClick={() => navigate(-1)}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h2>Update supplier</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Phone Number:</label>
-          <input
-            type="text"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Address:</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <button type="submit">Update</button>
-      </form>
+      <div className="function">
+        <h3>Update Supplier (ID: {supplier.id})</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="function-container">
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="phoneNumber">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group col-md-6">
+                <label className="label" htmlFor="address">Address</label>
+                <textarea className="form-group"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row" style={{ display: 'block' }}>
+              <label className="label" htmlFor="image">Image</label>
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div className="function-button">
+              <button type="submit" className="button-save" disabled={loadingUpdate}>
+                {loadingUpdate ? 'Updating...' : 'Update'}
+              </button>
+              <button onClick={() => navigate("/admin/suppliers")} className="button-cancel" disabled={loadingUpdate}>Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }
