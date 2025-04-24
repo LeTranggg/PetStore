@@ -11,9 +11,10 @@ namespace Pet.Models
         [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
         [Required]
+        public decimal UnitPrice { get; set; } // Trường lưu đơn giá
         public decimal Price
         {
-            get { return Quantity * (Variant.AdditionalFee + Variant.Product.Price); }
+            get { return Quantity * UnitPrice; } // Tính tổng giá dựa trên UnitPrice
         }
 
         public int CartId { get; set; }

@@ -6,7 +6,8 @@
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public int OrderId { get; set; }
-        public int VariantId { get; set; }
+        public int? VariantId { get; set; }
         public string VariantName { get; set; } // Tên biến thể để hiển thị
+        public string? Image { get; set; }
     }
 }

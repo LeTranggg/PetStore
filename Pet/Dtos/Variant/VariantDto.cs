@@ -15,6 +15,5 @@ namespace Pet.Dtos.Variant
         public decimal Length { get; set; }
         public string Product { get; set; }
         public List<ValueDto> Values { get; set; }
-        public string DisplayName => string.Join(" + ", Values.Select(v => v.Name)); // Tính toán tổ hợp
     }
 }

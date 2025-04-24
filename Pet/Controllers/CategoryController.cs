@@ -9,7 +9,6 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -32,8 +31,7 @@ namespace Pet.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
         {
-            var userId = GetUserId();
-            return Ok(await _categoryService.GetAllCategoriesAsync(userId));
+            return Ok(await _categoryService.GetAllCategoriesAsync());
         }
 
         // GET: api/category/1
@@ -42,8 +40,7 @@ namespace Pet.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                var category = await _categoryService.GetCategoryByIdAsync(userId, id);
+                var category = await _categoryService.GetCategoryByIdAsync(id);
                 return Ok(category);
             }
             catch (KeyNotFoundException ex)
@@ -54,6 +51,7 @@ namespace Pet.Controllers
 
         // POST: api/category
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] UpdateCategoryDto createCategoryDto)
         {
             try
@@ -70,6 +68,7 @@ namespace Pet.Controllers
 
         // PUT: api/category/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CategoryDto>> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateCategoryDto)
         {
             try
@@ -90,6 +89,7 @@ namespace Pet.Controllers
 
         // DETELE: api/category/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             try

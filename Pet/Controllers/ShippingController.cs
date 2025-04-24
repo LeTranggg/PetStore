@@ -8,7 +8,7 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class ShippingController : ControllerBase
     {
         private readonly IShippingService _shippingService;
@@ -53,6 +53,7 @@ namespace Pet.Controllers
 
         // POST: api/shipping
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ShippingDto>> CreateShipping([FromBody] CreateShippingDto createShippingDto)
         {
             try
@@ -69,6 +70,7 @@ namespace Pet.Controllers
 
         // PUT: api/shipping/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ShippingDto>> UpdateShipping(int id, [FromBody] UpdateShippingDto updateShippingDto)
         {
             try
@@ -89,6 +91,7 @@ namespace Pet.Controllers
 
         // DELETE: api/shipping/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteShipping(int id)
         {
             try

@@ -10,5 +10,6 @@ namespace Pet.Services.IServices
         Task<OrderDto> CancelOrderAsync(int id, CancelOrderDto cancelOrderDto, int userId);
         Task<OrderDto> UpdateOrderStatusAsync(int id, UpdateOrderDto updateOrderDto, int userId, string role);
         Task DeleteOrderAsync(int id, int userId, string role);
+        Task<SimulateOrderDto> SimulateOrderAsync(int userId, CreateOrderDto createOrderDto);
     }
 }

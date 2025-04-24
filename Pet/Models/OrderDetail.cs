@@ -15,7 +15,7 @@ namespace Pet.Models
         public int OrderId { get; set; }
         [ForeignKey("OrderId")]
         public Order Order { get; set; }
-        public int VariantId { get; set; }
+        public int? VariantId { get; set; }
         [ForeignKey("VariantId")]
         public Variant Variant { get; set; }
     }

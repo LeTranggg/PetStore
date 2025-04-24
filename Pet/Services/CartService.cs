@@ -111,14 +111,13 @@ namespace Pet.Services
                         CartItems = new List<CartItem>()
                     };
                     _context.Carts.Add(cart);
-                    await _context.SaveChangesAsync(); // Lưu cart để có CartId
+                    await _context.SaveChangesAsync();
                 }
 
                 // Kiểm tra xem Variant đã có trong giỏ chưa
                 var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.VariantId == addToCartDto.VariantId);
                 if (existingCartItem != null)
                 {
-                    // Cập nhật số lượng nếu đã có
                     existingCartItem.Quantity += addToCartDto.Quantity;
                     if (existingCartItem.Quantity > variant.Quantity)
                     {
@@ -128,20 +127,19 @@ namespace Pet.Services
                 else
                 {
                     // Thêm mới CartItem
+                    var unitPrice = variant.AdditionalFee + variant.Product.Price; // Tính đơn giá
                     var cartItem = new CartItem
                     {
                         Quantity = addToCartDto.Quantity,
+                        UnitPrice = unitPrice, // Lưu đơn giá
                         VariantId = addToCartDto.VariantId,
                         CartId = cart.Id,
-                        // Tính giá dựa trên giá sản phẩm và phí bổ sung của biến thể
-                        // Price sẽ được tính tự động qua getter, nhưng cần đảm bảo Variant và Product đã được load
                     };
                     cart.CartItems.Add(cartItem);
                 }
 
                 await _context.SaveChangesAsync();
 
-                // Load lại dữ liệu để trả về
                 cart = await _context.Carts
                     .Include(c => c.CartItems).ThenInclude(ci => ci.Variant).ThenInclude(v => v.Product)
                     .Include(c => c.CartItems).ThenInclude(ci => ci.Variant).ThenInclude(v => v.VariantValues).ThenInclude(vv => vv.Value)
@@ -151,9 +149,8 @@ namespace Pet.Services
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi để dễ debug
                 Console.WriteLine($"Error in AddToCartAsync: {ex.Message}");
-                throw; // Ném lại ngoại lệ để controller xử lý
+                throw;
             }
         }
 

@@ -73,8 +73,8 @@ namespace Pet.Services
             foreach (var vv in variant.VariantValues)
             {
                 await _context.Entry(vv).Reference(vv => vv.Value).LoadAsync();
-            }    
-            
+            }
+
             return _mapper.Map<VariantDto>(variant);
         }
 
@@ -141,7 +141,7 @@ namespace Pet.Services
             {
                 await _context.Entry(vv).Reference(vv => vv.Value).LoadAsync();
             }
-            
+
             return _mapper.Map<VariantDto>(variant);
         }
 
@@ -153,6 +153,16 @@ namespace Pet.Services
             var variant = await _context.Variants.FindAsync(id);
             if (variant == null) return false;
 
+            // Xóa các CartItem liên quan đến variant này
+            var cartItems = await _context.CartItems
+                .Where(ci => ci.VariantId == id)
+                .ToListAsync();
+            if (cartItems.Any())
+            {
+                _context.CartItems.RemoveRange(cartItems);
+            }
+
+            // Xóa variant
             _context.Variants.Remove(variant);
             await _context.SaveChangesAsync();
 

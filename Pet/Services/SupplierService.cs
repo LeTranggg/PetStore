@@ -54,20 +54,16 @@ namespace Pet.Services
         }
 
         // Xem danh sách suppliers
-        public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync(int userId)
+        public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
         {
-            await CheckUserAsync(userId);
-
             var suppliers = await _context.Suppliers.ToListAsync();
 
             return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
         }
 
         // Xem chi tiết supplier theo ID
-        public async Task<SupplierDto> GetSupplierByIdAsync(int userId, int id)
+        public async Task<SupplierDto> GetSupplierByIdAsync(int id)
         {
-            await CheckUserAsync(userId);
-
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {id} not found.");
 

@@ -72,6 +72,23 @@ namespace Pet.Controllers
             }
         }
 
+        // GET: api/payment
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllPayments()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var payments = await _paymentService.GetAllPaymentsAsync(userId);
+                return Ok(payments);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
         // GET: api/payment/status/1
         [HttpGet("status/{Id}")]
         public async Task<IActionResult> GetPaymentStatus(int Id)
@@ -88,22 +105,6 @@ namespace Pet.Controllers
             }
         }
 
-        // GET: api/payment/history/1
-        [HttpGet("history/{orderId}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetPaymentHistory(int orderId)
-        {
-            try
-            {
-                var userId = GetUserId();
-                var payments = await _paymentService.GetPaymentHistoryAsync(userId, orderId);
-                return Ok(payments);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
     }
 }
 

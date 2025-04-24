@@ -109,6 +109,15 @@ namespace Pet.Services
             return _mapper.Map<PaymentDto>(payment);
         }
 
+        // Xem danh sách payment
+        public async Task<IEnumerable<PaymentDto>> GetAllPaymentsAsync(int userId)
+        {
+            await CheckUserAsync(userId);
+
+            var payments = await _context.Payments.Include(p => p.Order).ToListAsync();
+            return _mapper.Map<IEnumerable<PaymentDto>>(payments);
+        }
+
         // Xem trạng thái payment
         public async Task<PaymentDto> GetPaymentStatusAsync(int userId, int Id)
         {
@@ -118,16 +127,6 @@ namespace Pet.Services
             if (payment == null) throw new KeyNotFoundException($"Payment with ID {Id} not found.");
 
             return _mapper.Map<PaymentDto>(payment);
-        }
-
-        // Xem lịch sử payment
-        public async Task<IEnumerable<PaymentDto>> GetPaymentHistoryAsync(int userId, int orderId)
-        {
-            await CheckUserAsync(userId);
-
-            var payments = await _context.Payments.Include(p => p.Order).Where(p => p.OrderId == orderId).ToListAsync();
-
-            return _mapper.Map<IEnumerable<PaymentDto>>(payments);
         }
 
     }

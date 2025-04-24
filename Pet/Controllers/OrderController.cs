@@ -25,7 +25,7 @@ namespace Pet.Controllers
             try
             {
                 var userIdClaim = User.FindFirst("sub")?.Value;
-                if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized(new { message = "User information not found. Please log in again." });
 
                 var userId = int.Parse(userIdClaim);
                 var role = User.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
@@ -47,7 +47,7 @@ namespace Pet.Controllers
                 var userIdClaim = User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                    return Unauthorized(new { message = "User information not found. Please log in again." });
                 }
 
                 var userId = int.Parse(userIdClaim);
@@ -75,7 +75,7 @@ namespace Pet.Controllers
                 var userIdClaim = User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                    return Unauthorized(new { message = "User information not found. Please log in again." });
                 }
 
                 var userId = int.Parse(userIdClaim);
@@ -88,6 +88,15 @@ namespace Pet.Controllers
             }
         }
 
+        [HttpPost("simulate")]
+        [Authorize(Roles = "Customer")]
+        public async Task<ActionResult<SimulateOrderDto>> SimulateOrder([FromBody] CreateOrderDto createOrderDto)
+        {
+            var userId = int.Parse(User.FindFirst("sub")?.Value);
+            var result = await _orderService.SimulateOrderAsync(userId, createOrderDto);
+            return Ok(result);
+        }
+
         // PUT: api/order/{id}/cancel
         [HttpPut("{id}/cancel")]
         [Authorize(Roles = "Customer")]
@@ -98,7 +107,7 @@ namespace Pet.Controllers
                 var userIdClaim = User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                    return Unauthorized(new { message = "User information not found. Please log in again." });
                 }
 
                 var userId = int.Parse(userIdClaim);
@@ -125,7 +134,7 @@ namespace Pet.Controllers
                 var userIdClaim = User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                    return Unauthorized(new { message = "User information not found. Please log in again." });
                 }
 
                 var userId = int.Parse(userIdClaim);
@@ -153,7 +162,7 @@ namespace Pet.Controllers
                 var userIdClaim = User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    return Unauthorized(new { message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                    return Unauthorized(new { message = "User information not found. Please log in again." });
                 }
 
                 var userId = int.Parse(userIdClaim);

@@ -196,7 +196,7 @@ namespace Pet.Services
             user.UserName = registerDto.Email;
             user.NormalizedUserName = registerDto.Email.ToUpper();
             user.NormalizedEmail = registerDto.Email.ToUpper();
-            user.RoleId = 2;
+            user.RoleId = 2; // Customer role 
             user.LockoutEnabled = false;
             user.LockReason = LockReason.None;
 

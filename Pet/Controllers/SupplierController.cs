@@ -9,7 +9,6 @@ namespace Pet.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class SupplierController : ControllerBase
     {
         private readonly ISupplierService _supplierService;
@@ -32,8 +31,7 @@ namespace Pet.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SupplierDto>>> GetAllSuppliers()
         {
-            var userId = GetUserId();
-            return Ok(await _supplierService.GetAllSuppliersAsync(userId));
+            return Ok(await _supplierService.GetAllSuppliersAsync());
         }
 
         // GET: api/supplier/1
@@ -42,8 +40,7 @@ namespace Pet.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                var supplier = await _supplierService.GetSupplierByIdAsync(userId, id);
+                var supplier = await _supplierService.GetSupplierByIdAsync(id);
                 return Ok(supplier);
             } 
             catch (KeyNotFoundException ex)
@@ -54,6 +51,7 @@ namespace Pet.Controllers
 
         // POST: api/supplier
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<SupplierDto>> CreateSupplier([FromForm] CreateSupplierDto createSupplierDto)
         {
             try
@@ -70,6 +68,7 @@ namespace Pet.Controllers
 
         // PUT: api/supplier/1
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<SupplierDto>> UpdateSupplier(int id, [FromForm] UpdateSupplierDto updateSupplierDto)
         {
             try
@@ -90,6 +89,7 @@ namespace Pet.Controllers
 
         // DELETE: api/supplier/1
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
             try

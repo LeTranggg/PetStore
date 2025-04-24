@@ -73,8 +73,8 @@ namespace Pet.Services
             await _context.Entry(product).Reference(p => p.Category).LoadAsync();
             await _context.Entry(product).Reference(p => p.Supplier).LoadAsync();
             await _context.Entry(product).Collection(p => p.Variants).Query()
-                                         .Include(v => v.VariantValues).ThenInclude(vv => vv.Value)
-                                         .LoadAsync(); // Load Variants với VariantValues và Value
+                                         .Include(v => v.VariantValues).ThenInclude(vv => vv.Value).ThenInclude(vf => vf.Feature)
+                                         .LoadAsync();
 
             return _mapper.Map<ProductDto>(product);
         }

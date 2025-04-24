@@ -33,20 +33,16 @@ namespace Pet.Services
         }
 
         // Xem danh sách categories 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync(int userId)
+        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
-            await CheckUserAsync(userId);
-
             var categories = await _context.Categories.ToListAsync();
 
             return _mapper.Map<IEnumerable<CategoryDto>>(categories);
         }
 
         // Xem chi tiết category theo ID
-        public async Task<CategoryDto> GetCategoryByIdAsync(int userId, int id)
+        public async Task<CategoryDto> GetCategoryByIdAsync(int id)
         {
-            await CheckUserAsync(userId);
-
             var category = await _context.Categories.FindAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found.");
 

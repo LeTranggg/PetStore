@@ -28,6 +28,10 @@ namespace Pet.Models
         [Required]
         public decimal CoinEarned { get; set; }
         [Required]
+        public decimal Price { get; set; } // Giá chưa tính phí vận chuyển
+        [Required]
+        public decimal ShippingCost { get; set; }
+        [Required]
         public decimal TotalPrice { get; set; }
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
@@ -48,14 +52,32 @@ namespace Pet.Models
 
         public void CalculateTotalPrice()
         {
-            decimal price = OrderDetails.Sum(od => od.Price);
-            decimal shippingCost = Shipping.CalculateShippingCost(
+            /*Price = OrderDetails.Sum(od => od.Price);
+            ShippingCost = Shipping.CalculateShippingCost(
                 OrderDetails.Sum(od => od.Quantity * od.Variant.Weight),
                 OrderDetails.Max(od => od.Variant.Length),
                 OrderDetails.Max(od => od.Variant.Width),
                 OrderDetails.Max(od => od.Variant.Height)
             );
-            TotalPrice = price + shippingCost;
+            TotalPrice = Price + ShippingCost;*/
+            // Calculate the subtotal (Price)
+            Price = OrderDetails.Sum(od => od.Price);
+            Console.WriteLine($"CalculateTotalPrice: Subtotal (Price) = {Price} VND");
+
+            // Log the inputs to CalculateShippingCost
+            decimal totalWeight = OrderDetails.Sum(od => od.Quantity * od.Variant.Weight);
+            decimal maxLength = OrderDetails.Max(od => od.Variant.Length);
+            decimal maxWidth = OrderDetails.Max(od => od.Variant.Width);
+            decimal maxHeight = OrderDetails.Max(od => od.Variant.Height);
+            Console.WriteLine($"CalculateTotalPrice: Inputs to CalculateShippingCost - Total Weight = {totalWeight}, Max Length = {maxLength}, Max Width = {maxWidth}, Max Height = {maxHeight}");
+
+            // Calculate shipping cost
+            ShippingCost = Shipping.CalculateShippingCost(totalWeight, maxLength, maxWidth, maxHeight);
+            Console.WriteLine($"CalculateTotalPrice: ShippingCost = {ShippingCost} VND");
+
+            // Calculate the final total price
+            TotalPrice = Price + ShippingCost;
+            Console.WriteLine($"CalculateTotalPrice: TotalPrice = {TotalPrice} VND (Subtotal: {Price} + ShippingCost: {ShippingCost})");
         }
 
         public int CalculateLoyaltyCoins(decimal finalPrice)
