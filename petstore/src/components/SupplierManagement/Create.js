@@ -55,13 +55,21 @@ function Create({ onSupplierCreated }) {
         state: { toast: { message: 'Supplier created successfully!', type: 'success' } }
       });
     } catch (err) {
+      console.error('Error creating supplier:', err.response);
+      let errorMessage = 'Failed to create supplier.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to create supplier.',
+        message: errorMessage,
         type: 'error',
         autoHide: false,
       });
-      console.error('Error creating supplier:', err.message || err);
     } finally {
       setLoadingCreate(false);
     }

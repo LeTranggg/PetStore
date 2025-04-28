@@ -93,8 +93,14 @@ function Register() {
         : 'Registration successful! Please check your email to confirm your account.');
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
-      console.error('Registration error:', err.response); // Log toàn bộ response
-      const errorMessage = err.response?.data?.message || err.response?.data?.title || (err.response?.data?.errors ? Object.values(err.response.data.errors)[0] : 'Registration failed');
+      let errorMessage = 'Registration failed'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       console.log('Parsed error message:', errorMessage);
       setError(errorMessage);
     } finally {

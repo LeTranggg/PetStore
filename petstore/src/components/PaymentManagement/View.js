@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import API from '../../utils/Axios';
 
 function View() {
@@ -52,7 +52,10 @@ function View() {
 
   const getFilteredPayments = () => {
     return payments.filter(payment => {
-      const matchesSearch = payment.method.toLowerCase().includes(searchTerm.toLowerCase());
+      // Convert orderId to string for comparison
+      const orderIdString = payment.orderId.toString();
+      // If searchTerm is empty, show all payments; otherwise, check if searchTerm is a substring of orderId
+      const matchesSearch = searchTerm === '' || orderIdString.includes(searchTerm);
       const matchesMethod = filters.method.length === 0 || filters.method.includes(payment.method);
       const matchesSuccess = filters.isSuccessful.length === 0 ||
         filters.isSuccessful.includes(payment.isSuccessful ? 'Yes' : 'No');
@@ -181,8 +184,8 @@ function View() {
             <form onSubmit={(e) => { e.preventDefault(); }}>
               <input
                 className="search-in"
-                type="text"
-                placeholder="Search for payments by method..."
+                type="number"
+                placeholder="Search for payments by order number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -221,6 +224,7 @@ function View() {
                   )}
                 </div>
               </th>
+              <th>Order ID</th>
               <th>Amount</th>
               <th>
                 <div className="filter-dropdown">
@@ -250,7 +254,6 @@ function View() {
                 </div>
               </th>
               <th>Date Created</th>
-              <th>Order ID</th>
               <th>Transaction ID</th>
             </tr>
           </thead>
@@ -260,10 +263,10 @@ function View() {
                 <tr key={payment.id}>
                   <td>{payment.id}</td>
                   <td>{payment.method}</td>
+                  <td>{payment.orderId}</td>
                   <td>{payment.amount.toFixed(2)}</td>
                   <td>{payment.isSuccessful ? 'Yes' : 'No'}</td>
                   <td>{new Date(payment.dateCreated).toLocaleString()}</td>
-                  <td>{payment.orderId}</td>
                   <td>{payment.transactionId || '-'}</td>
                 </tr>
               ))

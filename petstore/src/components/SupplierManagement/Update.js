@@ -52,13 +52,21 @@ function Update() {
         state: { toast: { message: 'Supplier updated successfully!', type: 'success' } }
       });
     } catch (err) {
+      console.error('Error updating supplier:', err.response);
+      let errorMessage = 'Failed to update supplier.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to update supplier.',
+        message: errorMessage,
         type: 'error',
         autoHide: false,
       });
-      console.error('Error updating supplier:', err.message || err);
     } finally {
       setLoadingUpdate(false);
     }

@@ -102,7 +102,7 @@ function Admin() {
   if (error) return <div className="error-message">{error}</div>;
 
   return (
-    <div className="dashboard">
+    <div className="admin">
       <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <Link to="/profile" className="user-profile">
           <img
@@ -149,8 +149,8 @@ function Admin() {
         </nav>
       </div>
 
-      <div className="dashboard-body">
-        <header className="dashboard-header">
+      <div className="admin-body">
+        <header className="admin-header">
           <button
             onClick={toggleSidebar}
             className="toggle-button"
@@ -163,7 +163,7 @@ function Admin() {
         </header>
 
         {/* Page content will be inserted here */}
-        <div className="dashboard-content">
+        <div className="admin-content">
           <Outlet />
         </div>
       </div>

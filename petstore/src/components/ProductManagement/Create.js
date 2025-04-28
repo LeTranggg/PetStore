@@ -102,10 +102,18 @@ function Create({ onProductCreated }) {
         state: { toast: { message: 'Product created successfully!', type: 'success' } }
       });
     } catch (err) {
-      console.error('Error creating product:', err.message || err);
+      console.error('Error creating product:', err.response);
+      let errorMessage = 'Failed to create product.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to create product.',
+        message: errorMessage,
         type: 'error',
         autoHide: false,
       });

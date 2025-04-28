@@ -63,7 +63,7 @@ function Checkout() {
         } else {
           setToast({
             show: true,
-            message: 'Không có phương thức vận chuyển nào khả dụng.',
+            message: 'No shipping method found.',
             type: 'error',
             autoHide: false,
           });
@@ -97,7 +97,7 @@ function Checkout() {
       } catch (err) {
         setToast({
           show: true,
-          message: 'Không thể tải dữ liệu. Vui lòng thử lại.',
+          message: 'Failed to load data. Please try again.',
           type: 'error',
           autoHide: false,
         });
@@ -135,7 +135,7 @@ function Checkout() {
     if (!cartItems || cartItems.length === 0) {
       setToast({
         show: true,
-        message: 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.',
+        message: 'Please select at least one product to check out.',
         type: 'error',
         autoHide: false,
       });
@@ -145,7 +145,7 @@ function Checkout() {
     if (!shippingId) {
       setToast({
         show: true,
-        message: 'Vui lòng chọn phương thức vận chuyển.',
+        message: 'Please select shipping method.',
         type: 'error',
         autoHide: false,
       });
@@ -155,7 +155,7 @@ function Checkout() {
     if (!paymentMethod) {
       setToast({
         show: true,
-        message: 'Vui lòng chọn phương thức thanh toán.',
+        message: 'Please select payment method.',
         type: 'error',
         autoHide: false,
       });
@@ -172,18 +172,14 @@ function Checkout() {
       });
 
       setOrder(response.data);
-      setToast({
-        show: true,
-        message: `Tạo đơn hàng thành công! Tổng tiền: ${response.data.totalPrice.toLocaleString('vi-VN')} VND`,
-        type: 'success',
-        autoHide: true,
-      });
       if (paymentMethod !== 'Stripe') {
-        navigate('/orders');
+        navigate('/customer/orders', {
+        state: { toast: { message: `Order created successfully! Total price: ${response.data.totalPrice.toLocaleString('vi-VN')} VND`, type: 'success' } }
+        });
       }
       setError('');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại.';
+      const errorMessage = err.response?.data?.message || 'Failed to create order.';
       setToast({
         show: true,
         message: errorMessage,
@@ -200,15 +196,11 @@ function Checkout() {
     try {
       const paymentIntentId = order.clientSecret.split('_secret_')[0];
       const response = await API.post(`/payment/${order.paymentId}/confirm`, paymentIntentId);
-      setToast({
-        show: true,
-        message: 'Thanh toán qua Stripe thành công!',
-        type: 'success',
-        autoHide: true,
+      navigate('/customer/orders', {
+        state: { toast: { message: 'Stripe payment successfully!', type: 'success' } }
       });
-      navigate('/orders');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Không thể xác nhận thanh toán.';
+      const errorMessage = err.response?.data?.message || 'Unable to confirm payment.';
       setToast({
         show: true,
         message: errorMessage,
@@ -227,7 +219,7 @@ function Checkout() {
     if (!stripe || !elements) {
       setToast({
         show: true,
-        message: 'Stripe chưa được khởi tạo.',
+        message: 'Stripe has not been initialized.',
         type: 'error',
         autoHide: false,
       });
@@ -238,7 +230,7 @@ function Checkout() {
     if (!cardNumberComplete || !cardExpiryComplete || !cardCvcComplete) {
       setToast({
         show: true,
-        message: 'Vui lòng điền đầy đủ thông tin thẻ tín dụng.',
+        message: 'Please fill in your credit card information.',
         type: 'error',
         autoHide: false,
       });
@@ -278,7 +270,7 @@ function Checkout() {
     } catch (err) {
       setToast({
         show: true,
-        message: 'Thanh toán thất bại. Vui lòng thử lại.',
+        message: 'Failed to payment order. Please try again.',
         type: 'error',
         autoHide: false,
       });
@@ -302,7 +294,7 @@ function Checkout() {
         },
       },
       invalid: {
-        color: '#fa755a',
+        color: '#EB2606',
       },
     },
   };
@@ -312,50 +304,62 @@ function Checkout() {
   const loyaltyCoinDeduction = useLoyaltyCoins ? Math.min(loyaltyCoins, subtotal + calculatedShippingCost) : 0;
   const totalPrice = Math.max(0, subtotal + calculatedShippingCost - loyaltyCoinDeduction);
 
-  if (fetchingItems) return <div className="loading-message">Đang tải...</div>;
+  if (fetchingItems) return <div className="loading-message">Loading...</div>;
 
   return (
     <div className="checkout-container">
-      <h2 className="checkout-title">Thanh toán</h2>
+      <h2>Checkout</h2>
 
       <div className="checkout-flex">
         {/* Danh sách sản phẩm đã chọn */}
         <div className="product-list">
-          <h3 className="product-list-title">Sản phẩm đã chọn</h3>
+          <h3 className="product-list-title">Selected Products</h3>
           {cartItems.length === 0 ? (
-            <p className="products-info">Chưa chọn sản phẩm nào.</p>
+            <p className="products-info">No product selected.</p>
           ) : (
             cartItems.map((item) => (
               <div key={item.id} className="product-item">
                 <img
                   src={item.image || `${process.env.PUBLIC_URL}/default.png`}
                   alt={item.productName}
-                  className="product-image"
+                  className="checkout-image"
                 />
                 <div className="product-details">
                   <h4 className="product-name">{item.productName}</h4>
-                  <p className="product-info">Biến thể: {item.variantName}</p>
-                  <p className="product-info">Đơn giá: {item.unitPrice.toLocaleString('vi-VN')} VND</p>
-                  <p className="product-info">Số lượng: {item.quantity}</p>
-                  <p className="product-total">Tổng: {(item.unitPrice * item.quantity).toLocaleString('vi-VN')} VND</p>
+                  <p className="product-info">Variant: {item.variantName}</p>
+                  <p className="product-info">Unit price: {item.unitPrice.toLocaleString('vi-VN')} VND</p>
+                  <p className="product-info">Quantity: {item.quantity}</p>
+                  <p className="product-total">{(item.unitPrice * item.quantity).toLocaleString('vi-VN')} VND</p>
                 </div>
               </div>
             ))
           )}
-          <div className="total-section">
-            <h4 className="total-price">Tổng tiền hàng: {subtotal.toLocaleString('vi-VN')} VND</h4>
-            <p className="total-price">Phí vận chuyển: +{calculatedShippingCost.toLocaleString('vi-VN')} VND</p>
-            <p className="total-price">Xu tích lũy: -{loyaltyCoinDeduction.toLocaleString('vi-VN')} VND</p>
-            <h4 className="total-price">Tổng ước tính: {totalPrice.toLocaleString('vi-VN')} VND</h4>
-          </div>
+          <table className="total-section">
+            <tr>
+              <th>Subtotal:</th>
+              <td>{subtotal.toLocaleString('vi-VN')} VND</td>
+            </tr>
+            <tr>
+              <th>Shipping cost:</th>
+              <td>+{calculatedShippingCost.toLocaleString('vi-VN')} VND</td>
+            </tr>
+            <tr>
+              <th>Loyalty coins spent:</th>
+              <td>-{loyaltyCoinDeduction.toLocaleString('vi-VN')} VND</td>
+            </tr>
+            <tr>
+              <th style={{ fontSize: '20px', color: '#12967A' }}>Total price:</th>
+              <td style={{ fontSize: '20px', color: '#12967A' }}>{totalPrice.toLocaleString('vi-VN')} VND</td>
+            </tr>
+          </table>
         </div>
 
         {/* Form thanh toán */}
         <div className="payment-form">
-          <h3 className="payment-form-title">Thông tin thanh toán</h3>
+          <h3 className="payment-form-title">Checkout Information</h3>
 
           <div className="form-group">
-            <label className="form-label">Phương thức vận chuyển:</label>
+            <label className="form-label">Shipping method:</label>
             {shippings.length > 0 ? (
               <select
                 value={shippingId}
@@ -368,51 +372,52 @@ function Checkout() {
               >
                 {shippings.map((shipping) => (
                   <option key={shipping.id} value={shipping.id}>
-                    {shipping.method} - {shipping.price.toLocaleString('vi-VN')} VND
+                    {shipping.method}
                   </option>
                 ))}
               </select>
             ) : (
-              <p className="product-info">Không có phương thức vận chuyển nào.</p>
+              <p className="product-info">No payment method found.</p>
             )}
           </div>
 
           <div className="form-group">
-            <label className="form-label">Phương thức thanh toán:</label>
+            <label className="form-label">Payment method:</label>
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
               className="form-select"
             >
-              <option value="Cash">Thanh toán khi nhận hàng</option>
-              <option value="Stripe">Thanh toán qua Stripe</option>
+              <option value="Cash">Cash</option>
+              <option value="Stripe">Stripe</option>
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginTop: '5px' }}>
             <label className="form-checkbox-label">
-              <input
-                type="checkbox"
-                checked={useLoyaltyCoins}
-                onChange={(e) => setUseLoyaltyCoins(e.target.checked)}
-                className="form-checkbox"
-              />
-              Sử dụng xu tích lũy ({loyaltyCoins.toLocaleString('vi-VN')} xu khả dụng)
+              <div className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={useLoyaltyCoins}
+                  onChange={(e) => setUseLoyaltyCoins(e.target.checked)}
+                />
+              </div>
+              Use loyalty Coins? ({loyaltyCoins.toLocaleString('vi-VN')} coins)
             </label>
           </div>
 
           <button
             onClick={handleCheckout}
             disabled={loading || cartItems.length === 0}
-            className="form-button"
+            className="button-save"
           >
-            {loading ? 'Đang xử lý...' : 'Tạo đơn hàng'}
+            {loading ? 'Loading...' : 'Create Order'}
           </button>
 
           {order && paymentMethod === 'Stripe' && order.clientSecret && (
             <form onSubmit={handleStripeSubmit} className="stripe-form">
               <div className="stripe-field">
-                <label className="form-label">Số thẻ tín dụng:</label>
+                <label className="form-label">Credit card number:</label>
                 <div className="stripe-input">
                   <CardNumberElement
                     options={elementOptions}
@@ -422,7 +427,7 @@ function Checkout() {
               </div>
               <div className="stripe-field-flex">
                 <div>
-                  <label className="form-label">Ngày hết hạn</label>
+                  <label className="form-label">Expiry date:</label>
                   <div className="stripe-input">
                     <CardExpiryElement
                       options={elementOptions}
@@ -431,7 +436,7 @@ function Checkout() {
                   </div>
                 </div>
                 <div>
-                  <label className="form-label">Mã CVC</label>
+                  <label className="form-label">CVC code:</label>
                   <div className="stripe-input">
                     <CardCvcElement
                       options={elementOptions}
@@ -449,9 +454,9 @@ function Checkout() {
                   !cardExpiryComplete ||
                   !cardCvcComplete
                 }
-                className="form-button"
+                className="button-save"
               >
-                {loading ? 'Đang xử lý...' : 'Thanh toán qua Stripe'}
+                {loading ? 'Loading...' : 'Stripe'}
               </button>
               {error && <p className="error-message">{error}</p>}
             </form>

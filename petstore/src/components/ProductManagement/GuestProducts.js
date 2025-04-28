@@ -363,7 +363,7 @@ function GuestProducts() {
               <div key={product.id} className="product-card">
                 <img src={product.image || `${process.env.PUBLIC_URL}/Default.png`} alt={product.name} />
                 <h4>{product.name}</h4>
-                <p>${product.price.toFixed(2)}</p>
+                <p>{product.price.toLocaleString('vi-VN')} VND</p>
                 <button onClick={() => handleAddToCartClick()} >
                   Add to Cart
                 </button>

@@ -51,19 +51,19 @@ function ConfirmEmail() {
 
   return (
     <div className="email-confirmation-container">
-      <h2>Xác Nhận Email</h2>
-      {confirmationStatus.loading && <p>Đang xác nhận email của bạn...</p>}
+      <h2>Confirm Email</h2>
+      {confirmationStatus.loading && <p>Confirming your email...</p>}
       {confirmationStatus.success && (
         <div className="success-message">
-          <p>Email của bạn đã được xác nhận thành công!</p>
-          <p>Đang chuyển hướng đến trang đăng nhập...</p>
+          <p>Your email confirmed successfully!</p>
+          <p>Redirecting to login page...</p>
         </div>
       )}
       {confirmationStatus.error && (
         <div className="error-message">
           <p>{confirmationStatus.error}</p>
           <p>
-            <Link to="/login">Quay lại trang đăng nhập</Link>
+            <Link to="/login">Back To Login</Link>
           </p>
         </div>
       )}

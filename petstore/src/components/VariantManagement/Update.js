@@ -121,6 +121,42 @@ function Update() {
     e.preventDefault();
     if (!variant) return;
 
+    // Kiểm tra xem có feature nào được chọn nhưng không có giá trị tương ứng không
+    const selectedFeatureNames = Object.keys(selectedFeatures).filter(
+      feature => selectedFeatures[feature]
+    );
+    const selectedValues = formData.valueIds.map(id => {
+      const value = values.find(v => v.id === id);
+      return value ? value.feature : null;
+    });
+
+    // Nếu có feature được chọn nhưng không có giá trị tương ứng
+    const missingValues = selectedFeatureNames.some(
+      feature => !selectedValues.includes(feature)
+    );
+
+    if (selectedFeatureNames.length === 0) {
+      // Nếu không chọn feature nào
+      setToast({
+        show: true,
+        message: 'Please select at least one feature and its value.',
+        type: 'error',
+        autoHide: false,
+      });
+      return;
+    }
+
+    if (missingValues) {
+      // Nếu có feature được chọn nhưng không chọn giá trị
+      setToast({
+        show: true,
+        message: 'Please select a value for each selected feature.',
+        type: 'error',
+        autoHide: false,
+      });
+      return;
+    }
+
     const data = new FormData();
     Object.keys(formData).forEach(key => {
       if (key === 'valueIds') {

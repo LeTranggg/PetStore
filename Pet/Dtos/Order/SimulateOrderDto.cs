@@ -2,7 +2,7 @@
 {
     public class SimulateOrderDto
     {
-        public decimal Price { get; set; }
+        public decimal Subtotal { get; set; }
         public decimal ShippingCost { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal CoinEarned { get; set; }

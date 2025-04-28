@@ -17,7 +17,9 @@ namespace Pet.Models
         None,         
         Expiration,   // Quá hạn xác nhận
         Mistake,      // Đặt nhầm
-        Violation,    // Vi phạm điều khoản
+        OutOfStock,
+        ChangedMind,
+        FoundBetterPrice
     }
 
     public class Order
@@ -26,9 +28,11 @@ namespace Pet.Models
         public int Id { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         [Required]
-        public decimal CoinEarned { get; set; }
+        public decimal CoinsEarned { get; set; }
         [Required]
-        public decimal Price { get; set; } // Giá chưa tính phí vận chuyển
+        public decimal LoyaltyCoinsSpent { get; set; }
+        [Required]
+        public decimal Subtotal { get; set; } // Giá chưa tính phí vận chuyển
         [Required]
         public decimal ShippingCost { get; set; }
         [Required]
@@ -52,17 +56,9 @@ namespace Pet.Models
 
         public void CalculateTotalPrice()
         {
-            /*Price = OrderDetails.Sum(od => od.Price);
-            ShippingCost = Shipping.CalculateShippingCost(
-                OrderDetails.Sum(od => od.Quantity * od.Variant.Weight),
-                OrderDetails.Max(od => od.Variant.Length),
-                OrderDetails.Max(od => od.Variant.Width),
-                OrderDetails.Max(od => od.Variant.Height)
-            );
-            TotalPrice = Price + ShippingCost;*/
             // Calculate the subtotal (Price)
-            Price = OrderDetails.Sum(od => od.Price);
-            Console.WriteLine($"CalculateTotalPrice: Subtotal (Price) = {Price} VND");
+            Subtotal = OrderDetails.Sum(od => od.Price);
+            Console.WriteLine($"CalculateTotalPrice: Subtotal (Price) = {Subtotal} VND");
 
             // Log the inputs to CalculateShippingCost
             decimal totalWeight = OrderDetails.Sum(od => od.Quantity * od.Variant.Weight);
@@ -76,8 +72,8 @@ namespace Pet.Models
             Console.WriteLine($"CalculateTotalPrice: ShippingCost = {ShippingCost} VND");
 
             // Calculate the final total price
-            TotalPrice = Price + ShippingCost;
-            Console.WriteLine($"CalculateTotalPrice: TotalPrice = {TotalPrice} VND (Subtotal: {Price} + ShippingCost: {ShippingCost})");
+            TotalPrice = Subtotal + ShippingCost;
+            Console.WriteLine($"CalculateTotalPrice: TotalPrice = {TotalPrice} VND (Subtotal: {Subtotal} + ShippingCost: {ShippingCost})");
         }
 
         public int CalculateLoyaltyCoins(decimal finalPrice)
@@ -90,16 +86,15 @@ namespace Pet.Models
         //Coins accumulated after each order
         public void ApplyLoyaltyCoins(bool IsUse)
         {
-            decimal finalPrice = TotalPrice;
             if (IsUse)
             {
-                finalPrice -= User.LoyaltyCoins;
-                if (finalPrice < 0) finalPrice = 0; //Ensure the order value is not negative
+                LoyaltyCoinsSpent = User.LoyaltyCoins;
+                TotalPrice -= User.LoyaltyCoins;
+                if (TotalPrice < 0) TotalPrice = 0; //Ensure the order value is not negative
                 User.LoyaltyCoins = 0;
             }
-            CoinEarned = CalculateLoyaltyCoins(finalPrice); //Calculate the new number of coins to receive based on the final order price
-            if (Status == OrderStatus.Received && CoinEarned > 0) User.LoyaltyCoins += CoinEarned;
+            CoinsEarned = CalculateLoyaltyCoins(TotalPrice); //Calculate the new number of coins to receive based on the final order price
+            if (Status == OrderStatus.Received && CoinsEarned > 0) User.LoyaltyCoins += CoinsEarned;
         }
-
     }
 }

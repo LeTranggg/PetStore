@@ -508,7 +508,7 @@ function View() {
                     <button type="button" onClick={() => handleUpdateClick(user)}>✏️</button>
                     <button type="button" onClick={() => handleDeleteClick(user)}>🗑️</button>
                     {user.lockoutEnabled ? (
-                      <button type="button" onClick={() => handleUnlockClick(user)}>🔓</button>
+                      <button type="button" onClick={() => handleUnlockClick(user)}>🔐</button>
                     ) : (
                       <button type="button" onClick={() => handleLockClick(user)}>🔒</button>
                     )}

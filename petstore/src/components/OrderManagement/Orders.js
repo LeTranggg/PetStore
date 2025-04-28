@@ -1,19 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import API from '../../utils/Axios';
 import Modal from 'react-bootstrap/Modal';
+import ToastNotification from '../../misc/ToastNotification';
 
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true
+  });
 
   // Cancel Modal
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('Mistake');
-  const [cancelError, setCancelError] = useState('');
+  const [loadingCancel, setLoadingCancel] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for toast message from Checkout.js
+  useEffect(() => {
+    if (location.state?.toast) {
+      setToast({
+        show: true,
+        message: location.state.toast.message,
+        type: location.state.toast.type,
+        autoHide: true,
+      });
+      // Clear the state to prevent re-showing the toast on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -21,9 +43,11 @@ function Orders() {
       try {
         const response = await API.get('/order');
         console.log('Orders:', response.data); // Log để kiểm tra dữ liệu
-        setOrders(response.data);
+        // Sắp xếp order theo thời gian tạo (createdAt) mới nhất
+        const sortedOrders = response.data.sort((a, b) => b.id - a.id)
+        setOrders(sortedOrders);
       } catch (err) {
-        setError('Không thể tải danh sách đơn hàng.');
+        setError('Failed to load order.');
         console.error(err);
       } finally {
         setLoading(false);
@@ -35,33 +59,44 @@ function Orders() {
   const handleCancelClick = (orderId) => {
     setSelectedOrderId(orderId);
     setCancelReason('Mistake');
-    setCancelError('');
     setShowCancelModal(true);
   };
 
   const handleCancelSubmit = async () => {
     setLoading(true);
-    setCancelError('');
+    setToast(prev => ({ ...prev, show: false }));
+
     try {
+      setLoadingCancel(true);
       await API.put(`/order/${selectedOrderId}/cancel`, {
         cancelReason,
       });
       const response = await API.get('/order');
-      setOrders(response.data);
-      alert('Đơn hàng đã được hủy thành công!');
+      console.log('Orders:', response.data); // Log để kiểm tra dữ liệu
+      // Sắp xếp order theo thời gian tạo (createdAt) mới nhất
+      const sortedOrders = response.data.sort((a, b) => b.id - a.id)
+      setOrders(sortedOrders);
+      setToast({
+        show: true,
+        message: 'Order cancelled successfully!',
+        type: 'success',
+        autoHide: true,
+      });
       setShowCancelModal(false);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Không thể hủy đơn hàng.';
-      setCancelError(errorMessage);
-      console.error(err);
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to cancel order.',
+        type: 'error',
+        autoHide: false,
+      });
     } finally {
-      setLoading(false);
+      setLoadingCancel(false);
     }
   };
 
   const handleCloseCancelModal = () => {
     setShowCancelModal(false);
-    setCancelError('');
     setSelectedOrderId(null);
   };
 
@@ -80,14 +115,17 @@ function Orders() {
     }
   };
 
-  if (loading) return <div>Đang tải...</div>;
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
+  };
+
   if (error) return <div>{error}</div>;
 
   return (
     <div className="main">
-      <h2>Danh sách đơn hàng</h2>
+      <h2>Order List</h2>
       {orders.length === 0 ? (
-        <p>Không có đơn hàng nào.</p>
+        <p style={{ marginTop: '20px' }}>No Order found.</p>
       ) : (
         <div className="order-list">
           {orders.map((order) => {
@@ -96,16 +134,16 @@ function Orders() {
               <div key={order.id} className="order-item">
                 {/* Thanh trạng thái đơn hàng (Timeline) */}
                 <div className="timeline">
-                  <div className={`step ${timelineStep >= 1 ? 'active' : ''}`} data-step="1">
+                  <div className={`step ${timelineStep >= 1 ? 'active' : ''}`} data-step="😀">
                     <span>Pending</span>
                   </div>
-                  <div className={`step ${timelineStep >= 2 ? 'active' : ''}`} data-step="2">
+                  <div className={`step ${timelineStep >= 2 ? 'active' : ''}`} data-step="😄">
                     <span>Delivering</span>
                   </div>
-                  <div className={`step ${timelineStep >= 3 ? 'active' : ''}`} data-step="3">
+                  <div className={`step ${timelineStep >= 3 ? 'active' : ''}`} data-step="😍">
                     <span>Received</span>
                   </div>
-                  <div className={`step ${timelineStep === 4 ? 'active' : ''}`} data-step="4">
+                  <div className={`step ${timelineStep === 4 ? 'active' : ''}`} data-step="😭">
                     <span>Canceled</span>
                   </div>
                 </div>
@@ -114,47 +152,52 @@ function Orders() {
                   console.log('Order Detail:', detail); // Log để kiểm tra dữ liệu
                   return (
                     <div key={detail.id} className="order-detail">
-                      <div className="product-info">
-                        <img
-                          src={detail.image || `${process.env.PUBLIC_URL}/default.png`}
-                          alt={detail.variantName}
-                          className="product-image"
-                        />
-                        <div className="product-details">
-                          <p>{detail.variantName}</p>
-                          <p>x{detail.quantity}</p>
-                        </div>
-                        <p>Ngày tạo: {new Date(order.dateCreated).toLocaleString()}</p>
-                      </div>
-                      <div className="product-status">
-                        <Link to={`/order/${order.id}`} className="delivery-status">
-                          Delivery successful
-                        </Link>
-                        <span className={`status ${order.status.toLowerCase()}`}>
-                          {order.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="product-price">${detail.price.toFixed(2)}</div>
+                      <img
+                        src={detail.image || `${process.env.PUBLIC_URL}/default.png`}
+                        alt={detail.variantName}
+                        className="product-image"
+                      />
+                      <p>{detail.variantName}</p>
+                      <p>Quantity: {detail.quantity}</p>
+                      <p>Date Created: {new Date(order.dateCreated).toLocaleString()}</p>
+                      <div className="product-price">{detail.price.toLocaleString('vi-VN')} VND</div>
                     </div>
                   );
                 })}
 
                 <div className="order-total">
-                  <strong>Order Total:</strong> ${order.totalPrice.toFixed(2)}
+                  <table>
+                    <tr>
+                      <th>Subtotal:</th>
+                      <td>{order.subtotal.toLocaleString('vi-VN')} VND</td>
+                    </tr>
+                    <tr>
+                      <th>Shipping cost:</th>
+                      <td>+{order.shippingCost.toLocaleString('vi-VN')} VND</td>
+                    </tr>
+                    <tr>
+                      <th>Loyalty coins spent:</th>
+                      <td>-{order.loyaltyCoinsSpent.toLocaleString('vi-VN')} VND</td>
+                    </tr>
+                    <tr>
+                      <th style={{ fontSize: '20px', color: '#12967A' }}>Total price:</th>
+                      <td style={{ fontSize: '20px', color: '#12967A' }}>{order.totalPrice.toLocaleString('vi-VN')} VND</td>
+                    </tr>
+                  </table>
                 </div>
 
                 <div className="action-buttons">
                   {order.status.toLowerCase() === 'pending' ? (
                     <button onClick={() => handleCancelClick(order.id)} className="cancel-button">
-                      Hủy đơn hàng
+                      Cancel Order
                     </button>
                   ) : order.status.toLowerCase() === 'received' ? (
                     <>
-                      <p>bbb</p>
+                      <p>Received</p>
                     </>
                   ) : order.status.toLowerCase() === 'cancelled' ? (
                     <>
-                      <p>bbb</p>
+                      <p>Cancelled</p>
                     </>
                   ) : null}
                 </div>
@@ -169,7 +212,6 @@ function Orders() {
           <Modal.Title>Cancel Order (ID: {selectedOrderId})</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {cancelError && <div className="error">{cancelError}</div>}
           <div>
             <label htmlFor="cancelReason">Select Reason:</label>
             <select
@@ -179,20 +221,29 @@ function Orders() {
               className="form-select"
             >
               <option value="Mistake">Mistake</option>
-              <option value="Expiration">Expiration</option>
-              <option value="Violation">Violation</option>
+              <option value="ChangedMind">Changed Mind</option>
+              <option value="FoundBetterPrice">Found Better Price</option>
             </select>
           </div>
         </Modal.Body>
         <Modal.Footer className="modal-footer">
-          <button className="button-danger" onClick={handleCancelSubmit}>
-            Cancel Order
+          <button className="button-danger" onClick={handleCancelSubmit} disabled={loadingCancel}>
+            {loadingCancel ? 'Canceling...' : 'Cancel'}
           </button>
-          <button className="button-cancel" onClick={handleCloseCancelModal}>
+          <button className="button-cancel" onClick={handleCloseCancelModal} disabled={loadingCancel}>
             Close
           </button>
         </Modal.Footer>
       </Modal>
+
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

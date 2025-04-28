@@ -57,7 +57,7 @@ function View() {
         autoHide: true
       });
     } catch (err) {
-      console.error('Không thể xóa sản phẩm:', err);
+      console.error('Failed to delete product:', err);
       setToast({
         show: true,
         message: 'Failed to delete product.',
@@ -77,10 +77,10 @@ function View() {
         ),
       }));
     } catch (err) {
-      console.error('Không thể cập nhật số lượng:', err);
+      console.error('Failed to update quantity:', err);
       setToast({
         show: true,
-        message: 'Quantity updated successfully!',
+        message: 'Cannot exceed the quantity in stock.',
         type: 'error',
         autoHide: false
       });
@@ -114,7 +114,7 @@ function View() {
   };
 
   if (error) return <div className="error-message">{error}</div>;
-  if (!cart || !cart.cartItems || cart.cartItems.length === 0) return <div>Giỏ hàng trống</div>;
+  if (!cart || !cart.cartItems || cart.cartItems.length === 0) return <div className="main"> <h2>My Cart</h2> <p style={{ marginTop: '20px' }}>Your shopping cart is empty. Start shopping now!</p></div>;
 
   const totalPrice = cart.cartItems
     .filter((item) => selectedItems.includes(item.id))
@@ -123,7 +123,7 @@ function View() {
   return (
     <div className="main">
       <h2>My Cart</h2>
-      <div>
+      <div style={{ marginTop: '20px' }}>
         {cart.cartItems.map((item) => (
           <div key={item.id} className="cart-item">
             <label className="checkbox">
@@ -141,7 +141,7 @@ function View() {
             />
             <h4 style={{ marginBottom: '0'}}>{item.productName}</h4>
             <p>Varriant: {item.variantName}</p>
-            <p>Unit price: ${(item.unitPrice).toFixed(2)}</p>
+            <p>Unit price: ${(item.unitPrice).toLocaleString('vi-VN')} VND</p>
             <div className="quantity-selector">
               <button
                 onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
@@ -152,7 +152,7 @@ function View() {
               <span>{item.quantity}</span>
               <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</button>
             </div>
-            <p>Total: ${(item.unitPrice * item.quantity).toFixed(2)}</p>
+            <p>Total: ${(item.unitPrice * item.quantity).toLocaleString('vi-VN')} VND</p>
             <button onClick={() => handleRemoveFromCart(item.id)} className="remove-button">
               Delete
             </button>
@@ -160,7 +160,7 @@ function View() {
         ))}
       </div>
       <div className="cart-summary">
-        <h4>Total order: ${totalPrice.toFixed(2)}</h4>
+        <h4>Total order: ${totalPrice.toLocaleString('vi-VN')} VND</h4>
         <button onClick={handleCheckout} className="checkout-button">
           Checkout
         </button>

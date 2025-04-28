@@ -266,31 +266,23 @@ function ProductDetail() {
   return (
     <div className="product-detail">
       <div className="product-detail-container">
-        <div className="product-detail-info">
+        <div className="product-detail-image">
           <img
             src={product.image || `${process.env.PUBLIC_URL}/default.png`}
             alt={product.name}
             style={{
-              width: '100%',
-              maxWidth: '400px',
+              width: '500px',
               borderRadius: '10px',
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
               objectFit: 'cover',
             }}
           />
-
-          <p>{product.description || 'N/A'}</p>
-          <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-            Category: <span style={{ fontWeight: 'bold' }}>{product.category}</span>
-          </p>
-          <p style={{ fontSize: '16px', marginBottom: '20px' }}>
-            Supplier: <span style={{ fontWeight: 'bold' }}>{product.supplier}</span>
-          </p>
         </div>
+
         <div className="product-detail-content">
           <h1>{product.name}</h1>
           <h5 style={{ color: '#EB2606', fontWeight: 'bold', marginBottom: '10px' }}>
-            {product.price.toFixed(2)}₫
+            {product.price.toLocaleString('vi-VN')} VND
           </h5>
           <div style={{ margin: '20px 0px' }}>
             {features.map((feature, index) => (
@@ -313,39 +305,16 @@ function ProductDetail() {
 
           {selectedVariant && selectedVariant.quantity > 0 && (
             <div className="variant-info">
-              <h4 style={{ fontSize: '16px', marginBottom: '10px' }}>Varriant Information</h4>
-              <table>
-                <thead>
-                  <tr style={{ backgroundColor: '#f1f1f1' }}>
-                    <th>Additional Fee</th>
-                    <th>Quantity</th>
-                    <th>Weight (kg)</th>
-                    <th>Height (cm)</th>
-                    <th>Width (cm)</th>
-                    <th>Length (cm)</th>
-                    <th>Image</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{selectedVariant.additionalFee.toFixed(2)}</td>
-                    <td>{selectedVariant.quantity}</td>
-                    <td>{selectedVariant.weight}</td>
-                    <td>{selectedVariant.height}</td>
-                    <td>{selectedVariant.width}</td>
-                    <td>{selectedVariant.length}</td>
-                    <td>
-                      {selectedVariant.image && (
-                        <img
-                          src={selectedVariant.image || product.image}
-                          alt="Variant"
-                          style={{ width: '50px', height: '50px', borderRadius: '5px' }}
-                        />
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div>
+                {selectedVariant.image && (
+                  <img
+                    src={selectedVariant.image || product.image}
+                    alt="Variant"
+                    style={{ width: '50px', height: '50px', borderRadius: '5px' }}
+                  />
+                )}
+              </div>
+              <p>Quantity: {selectedVariant.quantity}</p>
             </div>
           )}
 
@@ -365,7 +334,7 @@ function ProductDetail() {
             </button>
           </div>
 
-          <div className="action-buttons" style={{ width: '500px', marginLeft: '251px' }}>
+          <div className="action-buttons" style={{ width: '600px', marginLeft: '30px' }}>
             <button
               onClick={handleAddToCart}
               disabled={!selectedVariant || selectedVariant?.quantity === 0 || loadingAdd}
@@ -374,9 +343,9 @@ function ProductDetail() {
               >
               {loadingAdd ? 'Adding...' : (
                 selectedVariant?.quantity === 0 ? 'Sold out' : (
-                  `Add To Cart | $${selectedVariant
-                    ? ((product.price + selectedVariant.additionalFee) * quantity).toFixed(2)
-                    : product.price.toFixed(2)}`
+                  `Add To Cart | ${selectedVariant
+                    ? ((product.price + selectedVariant.additionalFee) * quantity).toLocaleString('vi-VN')
+                    : product.price.toLocaleString('vi-VN')} VND`
                 )
               )}
             </button>
@@ -387,7 +356,20 @@ function ProductDetail() {
               Back To Home
             </button>
           </div>
+
         </div>
+
+      </div>
+
+      <div className="product-detail-info">
+        <h3>Description</h3>
+        <p>{product.description || 'N/A'}</p>
+        <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+          Category: <span style={{ fontWeight: 'bold' }}>{product.category}</span>
+        </p>
+        <p style={{ fontSize: '16px', marginBottom: '20px' }}>
+          Supplier: <span style={{ fontWeight: 'bold' }}>{product.supplier}</span>
+        </p>
       </div>
 
       <ToastNotification

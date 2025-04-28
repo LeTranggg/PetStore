@@ -85,7 +85,7 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null || !user.EmailConfirmed)
-                throw new UnauthorizedAccessException("Invalid credentials or email not confirmed.");
+                throw new UnauthorizedAccessException("Invalid email or email not confirmed.");
 
             // Kiểm tra tình trạng khoá tài khoản
             var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // +7, Việt Nam
@@ -95,7 +95,7 @@ namespace Pet.Services
 
             // Kiểm tra mật khẩu trực tiếp
             var passwordValid = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-            if (!passwordValid) throw new UnauthorizedAccessException("Invalid credentials.");
+            if (!passwordValid) throw new UnauthorizedAccessException("Invalid password.");
 
             // Tải thông tin Role
             await _context.Entry(user).Reference(u => u.Role).LoadAsync();

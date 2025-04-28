@@ -628,9 +628,9 @@ function CustomerProducts() {
           {currentPageData.length > 0 ? (
             currentPageData.map(product => (
               <div key={product.id} className="product-card">
-                <img src={product.image || '/placeholder.jpg'} alt={product.name} />
+                <img src={product.image || `${process.env.PUBLIC_URL}/default.png`} alt={product.name} />
                 <h4>{product.name}</h4>
-                <p>${product.price.toFixed(2)}</p>
+                <p>{product.price.toLocaleString('vi-VN')} VND</p>
                 <button onClick={() => handleAddToCartClick(product)}>
                   Add to Cart
                 </button>
@@ -676,35 +676,12 @@ function CustomerProducts() {
             ))}
             {selectedVariant && selectedVariant.quantity > 0 && (
               <div className="variant-in">
-                <h4 style={{ fontSize: '16px', marginBottom: '10px' }}>Varriant Information</h4>
-                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
-                  <thead style={{ textAlign: 'center'}}>
-                    <tr style={{ backgroundColor: '#f1f1f1' }}>
-                      <th>Addtional Fee</th>
-                      <th>Quantity</th>
-                      <th>Weight (kg)</th>
-                      <th>Height (cm)</th>
-                      <th>Width (cm)</th>
-                      <th>Length (cm)</th>
-                      <th>Image (cm)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{selectedVariant.additionalFee.toFixed(2)}</td>
-                      <td>{selectedVariant.quantity}</td>
-                      <td>{selectedVariant.weight}</td>
-                      <td>{selectedVariant.height}</td>
-                      <td>{selectedVariant.width}</td>
-                      <td>{selectedVariant.length}</td>
-                      <td>
-                        {selectedVariant.image && (
-                          <img src={selectedVariant.image || selectedProduct.image} alt="Variant" width="50" height="50" />
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div>
+                  {selectedVariant.image && (
+                    <img src={selectedVariant.image || selectedProduct.image} alt="Variant" width="50" height="50" />
+                  )}
+                </div>
+                <p>Quantity: {selectedVariant.quantity}</p>
                 <div className="quantity-selector">
                   <button
                     onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
@@ -733,9 +710,9 @@ function CustomerProducts() {
             >
             {loadingAdd ? 'Adding...' : (
               selectedVariant?.quantity === 0 ? 'Sold out' : (
-                `Add To Cart | $${selectedProduct && selectedVariant
-                ? ((selectedProduct.price + selectedVariant.additionalFee) * quantity).toFixed(2)
-                : selectedProduct?.price.toFixed(2)}`
+                `Add To Cart | ${selectedProduct && selectedVariant
+                ? ((selectedProduct.price + selectedVariant.additionalFee) * quantity)
+                : selectedProduct?.price}`
               )
             )}
           </button>

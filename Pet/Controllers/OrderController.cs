@@ -88,6 +88,7 @@ namespace Pet.Controllers
             }
         }
 
+        // PUT: api/order/simulate
         [HttpPost("simulate")]
         [Authorize(Roles = "Customer")]
         public async Task<ActionResult<SimulateOrderDto>> SimulateOrder([FromBody] CreateOrderDto createOrderDto)

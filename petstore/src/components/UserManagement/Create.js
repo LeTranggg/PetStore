@@ -117,9 +117,18 @@ function Create({ onUserCreated }) {
         state: { toast: { message: 'User created successfully!', type: 'success' } }
       });
     } catch (err) {
+      console.error('Error creating user:', err.response);
+      let errorMessage = 'Failed to create user.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to create user.',
+        message: errorMessage,
         type: 'error',
         autoHide: false,
       });

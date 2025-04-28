@@ -22,7 +22,7 @@ function Welcome() {
         .slice(0, 3);
       setProducts(sortedProducts);
     } catch (err) {
-      setError('Không thể tải sản phẩm.');
+      setError('Failed to load product.');
       console.error(err);
     }
   };
@@ -33,7 +33,7 @@ function Welcome() {
       try {
         await Promise.all([fetchProducts()]);
       } catch (err) {
-        console.error('Lỗi khi tải dữ liệu:', err);
+        console.error('Failed to load data:', err);
       } finally {
         setLoading(false);
       }
@@ -103,13 +103,13 @@ function Welcome() {
           <div className="accessory-item" style={{ backgroundColor: '#C8B9D9' }}>
             <img
               src={`${process.env.PUBLIC_URL}/DogAcc.jpg`}
-              alt="Phụ kiện cho chó"
+              alt="Dog Accessories"
               className="accessory-image"
             />
             <div className="overlay">
-              <h1>Phụ kiện cho chó</h1>
+              <h1>Dog Accessories</h1>
               <button type="button" onClick={() => handleShopNowClick('dogAccessories')}>
-                Mua ngay
+                Shop Now
               </button>
             </div>
           </div>
@@ -117,13 +117,13 @@ function Welcome() {
           <div className="accessory-item">
             <img
               src={`${process.env.PUBLIC_URL}/CatAcc.jpeg`}
-              alt="Phụ kiện cho mèo"
+              alt="Cat Accessories"
               className="accessory-image"
             />
             <div className="overlay">
-              <h1>Phụ kiện cho mèo</h1>
+              <h1>Cat Accessories</h1>
               <button type="button" onClick={() => handleShopNowClick('catAccessories')}>
-                Mua ngay
+                Shop Now
               </button>
             </div>
           </div>
@@ -131,8 +131,8 @@ function Welcome() {
 
         {products.length > 0 && (
           <div className="product-body">
-            <h1>Sản phẩm mới nhất</h1>
-            <p>Chúng tôi cung cấp nhiều sản phẩm đẹp mắt</p>
+            <h1>Our Newest Products</h1>
+            <p>We Offer a Wide Variety of Beautiful Products</p>
 
             <div className="product">
               {products.map((product) => (
@@ -146,10 +146,10 @@ function Welcome() {
                     <h3>{product.name}</h3>
                     <p>{product.price.toLocaleString('vi-VN')} VND</p>
                     <button onClick={() => handleAddToCartClick(product)}>
-                      Thêm vào giỏ hàng
+                      Add To Cart
                     </button>
                     <button onClick={() => handleShopNowClick(product.id)}>
-                      Mua ngay
+                      Shop Now
                     </button>
                   </div>
                 </div>
@@ -162,13 +162,13 @@ function Welcome() {
           <div className="accessory-item">
             <img
               src={`${process.env.PUBLIC_URL}/Eat.jpeg`}
-              alt="Thức ăn"
+              alt="Eat"
               className="accessory-image"
             />
             <div className="overlay">
-              <h1>Thức ăn</h1>
+              <h1>Eat</h1>
               <button type="button" onClick={() => handleShopNowClick('eat')}>
-                Mua ngay
+                Shop Now
               </button>
             </div>
           </div>
@@ -176,13 +176,13 @@ function Welcome() {
           <div className="accessory-item" style={{ backgroundColor: '#C8B9D9' }}>
             <img
               src={`${process.env.PUBLIC_URL}/Sleep.jpeg`}
-              alt="Nơi ngủ"
+              alt="Sleep"
               className="accessory-image"
             />
             <div className="overlay">
-              <h1>Nơi ngủ</h1>
+              <h1>Sleep</h1>
               <button type="button" onClick={() => handleShopNowClick('sleep')}>
-                Mua ngay
+                Shop Now
               </button>
             </div>
           </div>

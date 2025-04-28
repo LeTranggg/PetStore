@@ -174,11 +174,6 @@ namespace Pet.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
 
-            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
-            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
-                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
-
             if (updateUserDto.Name != null) user.Name = updateUserDto.Name;
             if (updateUserDto.Email != null && updateUserDto.Email != user.Email)
             {
@@ -224,11 +219,6 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) return false;
-
-            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
-            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
-                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             var result = await _userManager.DeleteAsync(user);
 
@@ -315,11 +305,6 @@ namespace Pet.Services
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException($"User with ID {id} not found.");
-
-            var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTimeOffset.UtcNow.UtcDateTime, localTimeZone);
-            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > localNow)
-                throw new UnauthorizedAccessException("Your account is currently locked. Please try again later or contact support.");
 
             var newPassword = GenerateRandomPassword();
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);

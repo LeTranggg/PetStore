@@ -193,11 +193,20 @@ function View() {
         autoHide: true
       });
     } catch (err) {
+      console.error('Error creating category:', err.response);
+      let errorMessage = 'Failed to create category.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to create category.',
+        message: errorMessage,
         type: 'error',
-        autoHide: false
+        autoHide: false,
       });
     } finally {
       setLoadingCreate(false);
@@ -237,11 +246,20 @@ function View() {
         autoHide: true
       });
     } catch (err) {
+      console.error('Error updating category:', err.response);
+      let errorMessage = 'Failed to update category.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to update category.',
+        message: errorMessage,
         type: 'error',
-        autoHide: false
+        autoHide: false,
       });
     } finally {
       setLoadingUpdate(false);

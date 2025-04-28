@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../utils/Axios';
-import { useNavigate } from 'react-router-dom';
 import Modal from 'react-bootstrap/Modal';
+import ToastNotification from '../../misc/ToastNotification';
 
 function View() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    autoHide: true
+  });
   const [searchTerm, setSearchTerm] = useState('');
 
   // Sort
@@ -36,15 +41,14 @@ function View() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [orderStatus, setOrderStatus] = useState('Pending');
   const [cancelReason, setCancelReason] = useState('Mistake');
-  const [statusError, setStatusError] = useState('');
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
 
   // Delete Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Detail Modal
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
 
   // Hàm chuẩn hóa chuỗi
@@ -195,7 +199,6 @@ function View() {
 
   const handleDeleteClick = (order) => {
     setSelectedOrder(order);
-    setDeleteError('');
     setShowDeleteModal(true);
   };
 
@@ -203,7 +206,6 @@ function View() {
     setSelectedOrder(order);
     setOrderStatus(order.status);
     setCancelReason('Mistake');
-    setStatusError('');
     setShowStatusModal(true);
   };
 
@@ -211,6 +213,7 @@ function View() {
     if (!selectedOrder) return;
 
     try {
+      setLoadingUpdate(true);
       const payload = orderStatus === 'Cancelled' ? { status: orderStatus, cancelReason } : { status: orderStatus };
       await API.put(`/order/${selectedOrder.id}/status`, payload);
       const response = await API.get('/order');
@@ -221,16 +224,27 @@ function View() {
       }));
       setOrders(normalizedOrders);
       setShowStatusModal(false);
-      alert('Order status updated successfully');
+      setToast({
+        show: true,
+        message: 'Order status updated successfully!',
+        type: 'success',
+        autoHide: true,
+      });
       setTimeout(() => window.location.reload(), 0);
     } catch (err) {
-      setStatusError(err.response?.data?.message || 'Failed to update order status');
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to update order status.',
+        type: 'error',
+        autoHide: false,
+      });
+    } finally {
+      setLoadingUpdate(false);
     }
   };
 
   const handleCloseStatusModal = () => {
     setShowStatusModal(false);
-    setStatusError('');
   };
 
   const handleDetailClick = (order) => {
@@ -249,22 +263,37 @@ function View() {
     if (!selectedOrder) return;
 
     try {
+      setLoadingDelete(true);
       await API.delete(`/order/${selectedOrder.id}`);
       setOrders(prevOrders => prevOrders.filter(order => order.id !== selectedOrder.id));
       setShowDeleteModal(false);
-      alert('Order deleted successfully');
+      setToast({
+        show: true,
+        message: 'Order deleted successfully!',
+        type: 'success',
+        autoHide: true,
+      });
       setTimeout(() => window.location.reload(), 0);
     } catch (err) {
-      setDeleteError(err.response?.data?.message || 'Failed to delete order');
+      setToast({
+        show: true,
+        message: err.response?.data?.message || 'Failed to delete order.',
+        type: 'error',
+        autoHide: false,
+      });
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
-    setDeleteError('');
   };
 
-  if (loading) return <div>Loading orders...</div>;
+  const handleToastClose = () => {
+    setToast(prev => ({ ...prev, show: false }));
+  };
+
   if (error) return <div>{error}</div>;
 
   const currentPageData = getCurrentPageData();
@@ -303,8 +332,11 @@ function View() {
               <th>ID</th>
               <th>User</th>
               <th>Date Created</th>
-              <th>Coin Earned</th>
+              <th>Subtotal</th>
+              <th>Shipping Cost</th>
+              <th>Loyalty Coins Spent</th>
               <th>Total Price</th>
+              <th>Coins Earned</th>
               <th>
                 <div className="filter-dropdown">
                   Cancel Reason
@@ -369,13 +401,23 @@ function View() {
                   <td>{order.id}</td>
                   <td>{order.userName}</td>
                   <td>{new Date(order.dateCreated).toLocaleString()}</td>
-                  <td>{order.coinEarned || 0}</td>
+                  <td>{order.subtotal}</td>
+                  <td>{order.shippingCost}</td>
+                  <td>{order.loyaltyCoinsSpent || 0}</td>
                   <td>${order.totalPrice.toFixed(2)}</td>
+                  <td>{order.coinsEarned || 0}</td>
                   <td>{order.cancelReason || '-'}</td>
                   <td>{order.status}</td>
                   <td>
                     <button type="button" onClick={() => handleDetailClick(order)}>👁️</button>
-                    <button type="button" onClick={() => handleStatusClick(order)}>🔒</button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusClick(order)}
+                      disabled={order.status === 'Cancelled'}
+                      title={order.status === 'Cancelled' ? 'Cannot update status of a cancelled order' : 'Update Status'}
+                      >
+                      📮
+                    </button>
                     <button type="button" onClick={() => handleDeleteClick(order)}>🗑️</button>
                   </td>
                 </tr>
@@ -407,7 +449,6 @@ function View() {
           <Modal.Title>Update Order Status (ID: {selectedOrder?.id})</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {statusError && <div className="error">{statusError}</div>}
           <div>
             <label htmlFor="statusReason">Select Status:</label>
             <select
@@ -432,18 +473,17 @@ function View() {
                 className="form-select"
               >
                 <option value="Mistake">Mistake</option>
-                <option value="ChangedMind">Changed Mind</option>
-                <option value="FoundBetterPrice">Found Better Price</option>
-                <option value="Other">Other</option>
+                <option value="Expiration">Expiration</option>
+                <option value="OutOfStock">OutOfStock</option>
               </select>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer className="modal-footer">
-          <button className="button-danger" onClick={handleStatusSubmit}>
-            Update Status
+          <button className="button-save" onClick={handleStatusSubmit} disabled={loadingUpdate}>
+            {loadingUpdate ? 'Updating...' : 'Update'}
           </button>
-          <button className="button-cancel" onClick={handleCloseStatusModal}>
+          <button className="button-cancel" onClick={handleCloseStatusModal} disabled={loadingUpdate}>
             Cancel
           </button>
         </Modal.Footer>
@@ -454,16 +494,15 @@ function View() {
           <Modal.Title>Delete Order (ID: {selectedOrder?.id})</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {deleteError && <div className="error">{deleteError}</div>}
           <div>
             Are you sure you want to delete this order? This action cannot be undone.
           </div>
         </Modal.Body>
         <Modal.Footer className="modal-footer">
-          <button className="button-danger" onClick={handleDeleteSubmit}>
-            Delete Order
+          <button className="button-danger" onClick={handleDeleteSubmit} disabled={loadingDelete}>
+            {loadingDelete ? 'Deleting...' : 'Delete'}
           </button>
-          <button className="button-cancel" onClick={handleCloseDeleteModal}>
+          <button className="button-cancel" onClick={handleCloseDeleteModal} disabled={loadingDelete}>
             Cancel
           </button>
         </Modal.Footer>
@@ -477,20 +516,36 @@ function View() {
           {detailError && <div className="error">{detailError}</div>}
           {selectedOrder ? (
             <div>
-              <p><strong>Date Created:</strong> {new Date(selectedOrder.dateCreated).toLocaleString()}</p>
-              <p><strong>Total Price:</strong> ${selectedOrder.totalPrice.toFixed(2)}</p>
-              <p><strong>Status:</strong> {selectedOrder.status}</p>
-              <p><strong>Cancel Reason:</strong> {selectedOrder.cancelReason || '-'}</p>
-              <h3>Order Items</h3>
-              <ul>
-                {selectedOrder.orderDetails.map((detail) => (
-                  <li key={detail.id}>
-                    <p><strong>Product:</strong> {detail.variantName}</p>
-                    <p><strong>Quantity:</strong> {detail.quantity}</p>
-                    <p><strong>Price:</strong> ${detail.price.toFixed(2)}</p>
-                  </li>
-                ))}
-              </ul>
+              {selectedOrder.orderDetails.map((detail) => (
+                <div key={detail.id} className="order-detail-info">
+                  <table>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f1f1f1' }}>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          {detail.image && (
+                            <img
+                              src={detail.image || `${process.env.PUBLIC_URL}/default.png`}
+                              alt="Variant"
+                              style={{ width: '50px', height: '50px', borderRadius: '5px' }}
+                            />
+                          )}
+                        </td>
+                        <td>{detail.variantName}</td>
+                        <td>{detail.quantity}</td>
+                        <td>${detail.price.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
           ) : (
             <p>No order selected.</p>
@@ -502,6 +557,15 @@ function View() {
           </button>
         </Modal.Footer>
       </Modal>
+
+      <ToastNotification
+        show={toast.show}
+        onClose={handleToastClose}
+        message={toast.message}
+        type={toast.type}
+        autoHide={toast.autoHide}
+        delay={30000}
+      />
     </div>
   );
 }

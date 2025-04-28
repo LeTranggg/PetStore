@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Pet.Datas;
+using Pet.Dtos.Product;
 using Pet.Dtos.Value;
 using Pet.Models;
 using Pet.Services.IServices;

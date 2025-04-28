@@ -193,11 +193,20 @@ function View() {
         autoHide: true
       });
     } catch (err) {
+      console.error('Error creating role:', err.response);
+      let errorMessage = 'Failed to create role.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to create role.',
+        message: errorMessage,
         type: 'error',
-        autoHide: false
+        autoHide: false,
       });
     } finally {
       setLoadingCreate(false);
@@ -237,11 +246,20 @@ function View() {
         autoHide: true
       });
     } catch (err) {
+      console.error('Error updating role:', err.response);
+      let errorMessage = 'Failed to update role.'; // Default fallback
+      if (err.response && err.response.data) {
+        const { data } = err.response;
+        errorMessage = data;
+      } else if (err.message) {
+        // Fallback to err.message if no response data is available
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.message || 'Failed to update role.',
+        message: errorMessage,
         type: 'error',
-        autoHide: false
+        autoHide: false,
       });
     } finally {
       setLoadingUpdate(false);
