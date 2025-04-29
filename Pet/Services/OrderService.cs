@@ -453,7 +453,7 @@ namespace Pet.Services
                 await _emailService.SendEmailAsync(
                     to: order.User.Email,
                     subject: $"Order #{order.Id} Status Updated",
-                    body: $"Your order #{order.Id} has been updated to status: {order.Status}.\nUpdated at: {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss")}.\n\nYou can view the order details at: [Your Order URL]."
+                    body: $"Your order #{order.Id} has been updated to status: {order.Status}.\nUpdated at: {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss")}."
                 );
             }
 

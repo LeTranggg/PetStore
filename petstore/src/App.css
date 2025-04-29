@@ -381,7 +381,7 @@ input {
 
 /* ------------------Table------------------ */
 table {
-  text-align: start;
+  text-align: center;
   width: 100%;
 }
 
@@ -569,6 +569,7 @@ td {
   padding: 10px;
   margin: 20px;
   border-radius: 30px;
+  text-align: start;
 }
 
 .profile-container form {
@@ -581,6 +582,15 @@ td {
 
 .td-update-profile {
   padding: unset;
+}
+
+.td-update-profile .td-select {
+  padding: 8px;
+}
+
+.td-update-profile .td-textarea {
+  padding-left: 10px;
+  padding-top: 10px;
 }
 
 /* ------------------ChangePassword/DeleteAccount------------------ */
@@ -1412,6 +1422,10 @@ header {
   border-top: 1px solid #ddd;
 }
 
+.total-section th {
+  text-align: start;
+}
+
 .total-section td {
   text-align: right;
 }
@@ -1604,6 +1618,10 @@ header {
   text-align: right;
   margin-top: 10px;
   font-size: 16px;
+}
+
+.order-total th {
+  text-align: start;
 }
 
 .order-total td {

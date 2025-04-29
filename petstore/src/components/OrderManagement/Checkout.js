@@ -173,7 +173,7 @@ function Checkout() {
 
       setOrder(response.data);
       if (paymentMethod !== 'Stripe') {
-        navigate('/customer/orders', {
+        navigate('/customer/customer-orders', {
         state: { toast: { message: `Order created successfully! Total price: ${response.data.totalPrice.toLocaleString('vi-VN')} VND`, type: 'success' } }
         });
       }
@@ -196,7 +196,7 @@ function Checkout() {
     try {
       const paymentIntentId = order.clientSecret.split('_secret_')[0];
       const response = await API.post(`/payment/${order.paymentId}/confirm`, paymentIntentId);
-      navigate('/customer/orders', {
+      navigate('/customer/customer-orders', {
         state: { toast: { message: 'Stripe payment successfully!', type: 'success' } }
       });
     } catch (err) {

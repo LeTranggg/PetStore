@@ -413,7 +413,7 @@ function View() {
                     <button
                       type="button"
                       onClick={() => handleStatusClick(order)}
-                      disabled={order.status === 'Cancelled'}
+                      disabled={order.status === 'Received' || order.status === 'Cancelled'}
                       title={order.status === 'Cancelled' ? 'Cannot update status of a cancelled order' : 'Update Status'}
                       >
                       📮

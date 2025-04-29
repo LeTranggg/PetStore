@@ -68,12 +68,21 @@ namespace Pet.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // Sử dụng DateTime.Now để lấy thời gian hiện tại theo giờ máy chủ
+            DateTime currentServerTime = DateTime.Now;
+            DateTime expirationServerTime = currentServerTime.AddHours(1);
+
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1), // Thời gian token hết hạn
+                expires: expirationServerTime, // Thời gian token hết hạn
                 signingCredentials: creds);
+
+            // Log thời gian hiện tại và thời gian hết hạn theo giờ máy chủ
+            Console.WriteLine($"Current time (Server): {currentServerTime:yyyy-MM-dd HH:mm:ss} ({TimeZoneInfo.Local.DisplayName})");
+            Console.WriteLine($"Token expiration time (Server): {expirationServerTime:yyyy-MM-dd HH:mm:ss} ({TimeZoneInfo.Local.DisplayName})");
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
